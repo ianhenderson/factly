@@ -1,4 +1,7 @@
-angular.module('app.study', [])
-// .config(function(){})
-// .factory(function(){})
-// .controller(function(){});
+angular.module('app.study', ['app.facts'])
+.controller('studyCtrl', function($scope, data){
+  $scope.getNextFact = function(){
+    $scope.currentFact = data.getNextFact();
+  };
+  $scope.currentFact = $scope.getNextFact();
+});

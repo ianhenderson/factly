@@ -5,8 +5,9 @@
     <input ng-model="question" />
     <input ng-model="answer" />
     <button ng-click="addFact()">Click here to add a fact!</button>
+    <h2>Facts in Collection</h2>
     <ul>
-      <li ng-repeat="fact in getFacts()">{{fact.q}} => {{fact.a}}</li>
+      <li ng-repeat="fact in getAllFacts()">{{fact.q}} => {{fact.a}}</li>
     </ul>
 
   </div>

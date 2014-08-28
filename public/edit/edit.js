@@ -3,5 +3,5 @@ angular.module('app.edit', ['app.facts'])
   $scope.addFact = function(){
     data.addFact($scope.question, $scope.answer);
   };
-  $scope.getFacts = data.getFacts;
+  $scope.getAllFacts = data.getAllFacts;
 });

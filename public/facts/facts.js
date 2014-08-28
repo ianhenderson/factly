@@ -1,27 +1,43 @@
 angular.module('app.facts', [])
 .factory('data', function($rootScope){
 
-  var facts = [
-    {q: "fact1", a: "answer1"},
-    {q: "fact2", a: "answer2"},
-    {q: "fact3", a: "answer3"},
-  ];
+  var facts = [];
+  var currentInd = 0;
+  var incrementIndex = function(){
+    currentInd++;
+    if (currentInd >= facts.length){
+      currentInd = 0;
+    }
+  };
+
+  //=================Dummy Data for testing only=======================
+  for (var i = 0; i < 20; i++) {
+    var obj = {
+      q: "fact" + i,
+      a: "answer" + i
+    };
+    facts.push(obj);
+  }
+  //===================================================================
 
   return {
 
-    getFacts: function(){
+    getAllFacts: function(){
       return facts;
     },
 
     addFact: function(question, answer){
-
       var fact = {
         q: question,
         a: answer
       }
-
       facts.push(fact);
+    },
 
+    getNextFact: function(){
+      var fact = facts[currentInd];
+      incrementIndex();
+      return fact;
     }
 
   };
