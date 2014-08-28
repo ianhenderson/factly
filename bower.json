@@ -1,0 +1,21 @@
+{
+  "name": "factly",
+  "version": "0.0.0",
+  "homepage": "https://github.com/ianhenderson/factly",
+  "authors": [
+    "Ian Henderson <ianwhen@gmail.com>"
+  ],
+  "main": "public/app.js",
+  "moduleType": [
+    "node"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "public/lib",
+    "test",
+    "tests"
+  ]
+}
