@@ -1,4 +1,4 @@
 factly
 ======
 
-A flashcard application for studying facts
+A MEAN-stack flashcard application for studying facts.
