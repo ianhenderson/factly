@@ -1,25 +1,46 @@
 <!DOCTYPE html>
-<html ng-app="app">
-<head>
-  <script src="lib/angular/angular.js"></script>
-  <script src="app.js"></script>
-</head>
+<html>
+  <head>
+    <link rel="stylesheet" href="lib/bootstrap/dist/css/bootstrap.css">
+    <script src="lib/angular/angular.js"></script>
+    <script src="lib/angular-ui-router/release/angular-ui-router.js"></script>
+    <script src="app.js"></script>
+  </head>
 
-<body>
+  <body ng-app="app">
 
-  <h1>Factly</h1>
-  
-  <div ng-controller="mainCtrl">
+    <nav class="navbar navbar-inverse" role="navigation">
+      
+      <div class="navbar-header">
+        <a ui-sref="#" class="navbar-brand">Factly</a>
+      </div>
+
+      <ul class="nav navbar-nav">
+        <li><a ui-sref="login">Login</a></li>
+        <li><a ui-sref="study">Study</a></li>
+        <li><a ui-sref="edit">Edit Facts</a></li>
+      </ul>
+
+    </nav>
     
-    <input ng-model="question" />
-    <input ng-model="answer" />
-    <button ng-click="addFact()">Click here to add a fact!</button>
-    <ul>
-      <li ng-repeat="fact in getFacts()">{{fact.q}} => {{fact.a}}</li>
-    </ul>
+    <div class="container">
+      
+      <div ui-view></div>
 
-  </div>
+    </div>
 
-</body>
+
+  <!--   <div ng-controller="mainCtrl">
+      
+      <input ng-model="question" />
+      <input ng-model="answer" />
+      <button ng-click="addFact()">Click here to add a fact!</button>
+      <ul>
+        <li ng-repeat="fact in getFacts()">{{fact.q}} => {{fact.a}}</li>
+      </ul>
+
+    </div>
+   -->
+  </body>
 
 </html>
