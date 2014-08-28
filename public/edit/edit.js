@@ -8,4 +8,7 @@ angular.module('app.edit', ['app.facts'])
     $scope.fact = '';
   };
 
+  $scope.deleteFact = function(i){
+    data.deleteFact(i);
+  };
 });

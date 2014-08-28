@@ -30,6 +30,13 @@ angular.module('app.facts', [])
       var fact = facts[currentInd];
       incrementIndex();
       return fact;
+    },
+
+    deleteFact: function(i){
+      facts.splice(i,1);
+      if (i <= currentInd){
+        currentInd--;
+      }
     }
 
   };

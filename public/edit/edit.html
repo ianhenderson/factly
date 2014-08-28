@@ -14,7 +14,7 @@
     <h2>Facts in Collection</h2>
     <table class="table table-striped">
       <tr ng-repeat="fact in getAllFacts() | filter:searchTerm track by $index">
-        <td>{{fact}}</td>
+        <td>{{fact}} <button ng-click="deleteFact($index)">Delete</button> </td> 
       </tr>
     </table>
 
