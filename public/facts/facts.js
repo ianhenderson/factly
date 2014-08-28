@@ -11,12 +11,8 @@ angular.module('app.facts', [])
   };
 
   //=================Dummy Data for testing only=======================
-  for (var i = 0; i < 20; i++) {
-    var obj = {
-      q: "fact" + i,
-      a: "answer" + i
-    };
-    facts.push(obj);
+  for (var i = 0; i < 10; i++) {
+    facts.push("fact" + i);
   }
   //===================================================================
 
@@ -26,11 +22,7 @@ angular.module('app.facts', [])
       return facts;
     },
 
-    addFact: function(question, answer){
-      var fact = {
-        q: question,
-        a: answer
-      }
+    addFact: function(fact){
       facts.push(fact);
     },
 
