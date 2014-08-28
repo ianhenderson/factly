@@ -1,13 +1,22 @@
 <h1>Edit Page</h1>
 
   <div ng-controller="editCtrl">
-    
-    <input ng-model="fact" />
-    <button ng-click="addFact()">Click here to add a fact!</button>
+
+    <div class="form-group">
+      <input ng-model="fact" ng-keyup="$event.keyCode == 13 && addFact()" class="form-control" placeholder="Enter your fact here!"/>
+      <button ng-click="addFact()">Add Fact to Collection</button>
+    </div>
+
+    <div class="form-group">
+      <input ng-model="searchTerm" class="form-control" placeholder="Type here to filter list.">
+    </div>
+
     <h2>Facts in Collection</h2>
-    <ul>
-      <li ng-repeat="fact in getAllFacts() track by $index">{{fact}}</li>
-    </ul>
+    <table class="table table-striped">
+      <tr ng-repeat="fact in getAllFacts() | filter:searchTerm track by $index">
+        <td>{{fact}}</td>
+      </tr>
+    </table>
 
   </div>
 
