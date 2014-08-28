@@ -14,5 +14,9 @@
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/ianhenderson/factly/issues"
+  },
+  "dependencies": {
+    "express": "~4.8.6",
+    "sqlite3": "~2.2.7"
   }
 }
