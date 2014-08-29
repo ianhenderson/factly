@@ -10,21 +10,36 @@ module.exports = function(app){
 
   });
 
-  app.post('/api/addfact', function(req,res){
+  // Add new user & password to database
+  app.post('/api/adduser', function(req,res){
 
-    console.log(req.body);
+    if (!req.body.name || !req.body.password){
 
-    var validFields = ['$name', '$password'];
+      res.send("Error: POST must include a name and password.")
 
-    var data = {};
+    } else {
 
-    validFields.forEach(function(v){
-      data[v] = req.body[v];
-    });
+      var name = req.body.name;
+      var password = req.body.password;
 
-    db.saveData(data);
+      db.checkUser(name, password, function(rows){
 
-    res.send("ok");
+        if (rows.length > 0){
+
+          res.send("User already in database");
+
+        } else {
+
+          db.addNewUser(name, password);
+
+          res.send(["Success! New user add: ", name].join(''))
+
+        }
+
+      });
+
+    }
+
   });
 
   // Authenticate username/password
