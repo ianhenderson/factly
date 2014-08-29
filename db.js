@@ -7,30 +7,38 @@ var db = new sqlite3.Database(file);
 if (!exists){
   console.log('Creating DB file.');
   fs.openSync(file, 'w');
-  db.run('CREATE TABLE users (id INT PRIMARY KEY, name VARCHAR(255), age INT)');
+  db.run('CREATE TABLE users (id INTEGER PRIMARY KEY, name VARCHAR(255), password VARCHAR(255))');
+  db.run('CREATE TABLE facts (id INTEGER, fact TEXT)');
 }
 
 
 module.exports = {
 
-  saveData: function(data){
-    db.run('INSERT INTO users VALUES ($name, $age)', data);
+  checkUser: function(name, password, cb){
+    db.all('SELECT * FROM users WHERE name = ? AND password = ?', name, password, function(err, rows){
+      if (err) {
+        console.error(err);
+      } else {
+        cb(rows);
+      }
+    });
+  },
+
+  addNewUser: function(name, password){
+    db.run('INSERT INTO users (name, password) VALUES (?, ?)', name, password);
+  },
+
+  addFact: function(name, fact){
+    db.run('INSERT INTO facts (id, fact) SELECT users.id, ? FROM users WHERE users.name = ?', fact, name);
   },
 
   getData: function(cb){
-
     db.all('SELECT * FROM users', function(err, rows){
-
       if (err) {
-
         console.error(err);
-
       } else {
-
         cb(rows);
-
       }
-
     });
   }
 };

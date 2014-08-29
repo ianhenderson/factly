@@ -10,17 +10,11 @@ module.exports = function(app){
 
   });
 
-  app.get('*', function(req,res){
-
-    res.sendfile('./public/index.html');
-
-  });
-
-  app.post('/api', function(req,res){
+  app.post('/api/addfact', function(req,res){
 
     console.log(req.body);
 
-    var validFields = ['$name', '$age'];
+    var validFields = ['$name', '$password'];
 
     var data = {};
 
@@ -33,4 +27,39 @@ module.exports = function(app){
     res.send("ok");
   });
 
+  // Authenticate username/password
+  app.post('/api/login', function(req,res){
+
+    if (!req.body.name || !req.body.password){
+
+      res.send("Error: POST must include a name and password.")
+
+    } else {
+
+      var name = req.body.name;
+      var password = req.body.password;
+
+      db.checkUser(name, password, function(rows){
+
+        if (rows.length > 0){
+
+          res.send("User found!");
+
+        } else {
+
+          res.send("Error: username / password incorrect.")
+
+        }
+
+      });
+
+    }
+
+  });
+
+  app.get('/*', function(req,res){
+
+    res.sendfile('./public/index.html');
+
+  });
 };
