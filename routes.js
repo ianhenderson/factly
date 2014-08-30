@@ -2,11 +2,35 @@ var db = require('./db.js');
 
 module.exports = function(app){
 
-  app.get('/api', function(req, res){
+  // Get facts for a particular user
+  app.get('/api/facts/:user', function(req, res){
 
-    db.getData(function(rows){
+    var name = req.params.user;
+
+    db.getFacts(name, function(rows){
+
       res.send(rows);
+
     });
+
+  });
+
+  // Add a new fact to a user's collection
+  app.post('/api/facts', function(req, res){
+
+    if (!req.body.name || !req.body.fact){
+
+      res.send("Error: POST must include a name and a fact.");
+
+    } else {
+
+      var name = req.body.name;
+      var fact = req.body.fact;
+
+      db.addFact(name, fact);
+
+      res.send(["Success! Fact added to ", name, "'s collection: ", fact].join(''));
+    }
 
   });
 
