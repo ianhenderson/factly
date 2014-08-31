@@ -39,7 +39,7 @@ module.exports = function(app){
 
     if (!req.body.name || !req.body.password){
 
-      res.send("Error: POST must include a name and password.")
+      res.send("Error: POST must include a name and password.");
 
     } else {
 
@@ -56,7 +56,7 @@ module.exports = function(app){
 
           db.addNewUser(name, password);
 
-          res.send(["Success! New user add: ", name].join(''))
+          res.send(["Success! New user added: ", name].join(''));
 
         }
 
@@ -71,7 +71,7 @@ module.exports = function(app){
 
     if (!req.body.name || !req.body.password){
 
-      res.send("Error: POST must include a name and password.")
+      res.send("Error: POST must include a name and password.");
 
     } else {
 
@@ -86,7 +86,7 @@ module.exports = function(app){
 
         } else {
 
-          res.send("Error: username / password incorrect.")
+          res.send("Error: username / password incorrect.");
 
         }
 
