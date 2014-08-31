@@ -3,29 +3,79 @@ var file = 'test.db';
 var exists = fs.existsSync(file);
 var sqlite3 = require('sqlite3').verbose();
 var db = new sqlite3.Database(file);
+var bcrypt = require('bcrypt');
 
 if (!exists){
   console.log('Creating DB file.');
   fs.openSync(file, 'w');
-  db.run('CREATE TABLE users (id INTEGER PRIMARY KEY, name VARCHAR(255), password VARCHAR(255))');
+  db.run('CREATE TABLE users (id INTEGER PRIMARY KEY, name VARCHAR(255), password VARCHAR(255), salt VARCHAR(255))');
   db.run('CREATE TABLE facts (id INTEGER, fact TEXT)');
 }
+
+// if ()
 
 
 module.exports = {
 
   checkUser: function(name, password, cb){
-    db.all('SELECT * FROM users WHERE name = ? AND password = ?', name, password, function(err, rows){
+
+    // First, we get users with provided name
+    db.all('SELECT name, password, salt FROM users WHERE name = ?', name, function(err, rows){
       if (err) {
         console.error(err);
       } else {
-        cb(rows);
+
+        // If no results, return
+        if (!rows.length) {
+          cb(rows);
+        } else {
+
+          // Get salt for user
+          var salt = rows[0].salt;
+
+          // Generate hash from provided password and retrieved salt
+          bcrypt.hash(password, salt, function(err, hash){
+
+            // Compare generated hash with one stored in DB
+            db.all('SELECT * FROM users WHERE name = ? AND password = ?', name, hash, function(err, rows){
+
+            cb(rows);
+
+          });
+
+          });
+
+        }
+
       }
+
     });
+      
   },
 
   addNewUser: function(name, password){
-    db.run('INSERT INTO users (name, password) VALUES (?, ?)', name, password);
+
+    // Generate salt for password
+    bcrypt.genSalt(8, function(err, salt){
+
+      if (err){
+        console.error(err);
+      }
+
+      // Generate salted hash
+      bcrypt.hash(password, salt, function(err, hash){
+
+        if (err){
+          console.error(err);
+        }
+
+        // Save name, hashed password and salt to DB
+        db.run('INSERT INTO users (name, password, salt) VALUES (?, ?, ?)', name, hash, salt);
+
+      });
+      
+    });
+
   },
 
   addFact: function(name, fact){
