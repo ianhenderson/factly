@@ -9,7 +9,7 @@ module.exports = function(app){
 
     db.getFacts(name, function(rows){
 
-      res.send(rows);
+      res.status(200).send(rows);
 
     });
 
@@ -20,7 +20,7 @@ module.exports = function(app){
 
     if (!req.body.name || !req.body.fact){
 
-      res.send("Error: POST must include a name and a fact.");
+      res.status(409).send("Error: POST must include a name and a fact.");
 
     } else {
 
@@ -29,7 +29,7 @@ module.exports = function(app){
 
       db.addFact(name, fact);
 
-      res.send(["Success! Fact added to ", name, "'s collection: ", fact].join(''));
+      res.status(201).send(["Success! Fact added to ", name, "'s collection: ", fact].join(''));
     }
 
   });
@@ -39,7 +39,7 @@ module.exports = function(app){
 
     if (!req.body.name || !req.body.password){
 
-      res.send("Error: POST must include a name and password.");
+      res.status(400).send("Error: POST must include a name and password.");
 
     } else {
 
@@ -50,13 +50,13 @@ module.exports = function(app){
 
         if (rows.length > 0){
 
-          res.send("User already in database");
+          res.status(409).send("User already in database");
 
         } else {
 
           db.addNewUser(name, password);
 
-          res.send(["Success! New user added: ", name].join(''));
+          res.status(201).send(["Success! New user added: ", name].join(''));
 
         }
 
@@ -71,7 +71,7 @@ module.exports = function(app){
 
     if (!req.body.name || !req.body.password){
 
-      res.send("Error: POST must include a name and password.");
+      res.status(400).send("Error: POST must include a name and password.");
 
     } else {
 
@@ -82,11 +82,11 @@ module.exports = function(app){
 
         if (rows.length > 0){
 
-          res.send("User found!");
+          res.status(200).send("User found!");
 
         } else {
 
-          res.send("Error: username / password incorrect.");
+          res.status(403).send("Error: username / password incorrect.");
 
         }
 
