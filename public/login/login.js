@@ -1,8 +1,9 @@
 angular.module('app.login', [])
 .controller('loginCtrl', function($scope, $http){
 
-
   $scope.loginUser = function(){
+
+    // Set POST parameters for login request
     var params = {
       method: 'POST',
       url: 'api/login',
@@ -11,6 +12,8 @@ angular.module('app.login', [])
         password: $scope.userPassword
       }
     };
+
+    // Send login request to server
     $http(params)
       .success(function(data, status){
         console.log(status, data);
@@ -18,6 +21,7 @@ angular.module('app.login', [])
       .error(function(data, status){
         console.log(status, data);
       });
+
   };
 
 });
