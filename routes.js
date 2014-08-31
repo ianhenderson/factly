@@ -20,7 +20,7 @@ module.exports = function(app){
 
     if (!req.body.name || !req.body.fact){
 
-      res.status(409).send("Error: POST must include a name and a fact.");
+      res.status(400).send("Error: POST must include a name and a fact.");
 
     } else {
 
@@ -50,7 +50,7 @@ module.exports = function(app){
 
         if (rows.length > 0){
 
-          res.status(409).send("User already in database");
+          res.status(409).send("User already in database.");
 
         } else {
 
