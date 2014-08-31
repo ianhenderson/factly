@@ -4,7 +4,7 @@ var exists = fs.existsSync(file);
 var sqlite3 = require('sqlite3').verbose();
 var db = new sqlite3.Database(file);
 
-if (!exists || process.env.PERSIST_DB === false){
+if (!exists || process.env.PERSIST_DB === 'false'){
   console.log('Creating DB file.');
   fs.openSync(file, 'w');
   db.run('CREATE TABLE users (id INTEGER PRIMARY KEY, name VARCHAR(255), password VARCHAR(255))');
