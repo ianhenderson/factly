@@ -22,26 +22,35 @@ module.exports = {
     // First, we get users with provided name
     db.all('SELECT name, password, salt FROM users WHERE name = ?', name, function(err, rows){
       if (err) {
+        
         console.error(err);
+
       } else {
 
         // If no results, return
         if (!rows.length) {
+
           cb(rows);
+
         } else {
 
-          // Get salt for user
+          // Get salt, hashed password for user
           var salt = rows[0].salt;
+          var hashedPassword = rows[0].password;
 
           // Generate hash from provided password and retrieved salt
           bcrypt.hash(password, salt, function(err, hash){
 
-            // Compare generated hash with one stored in DB
-            db.all('SELECT * FROM users WHERE name = ? AND password = ?', name, hash, function(err, rows){
+            // Check against DB values
+            if (hash === hashedPassword){
 
-            cb(rows);
+              cb(rows);
 
-          });
+            } else {
+
+              cb([]);
+
+            }
 
           });
 
