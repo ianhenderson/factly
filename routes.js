@@ -82,7 +82,11 @@ module.exports = function(app){
 
         if (rows.length > 0){
 
-          res.status(200).send("User found!");
+          db.getFacts(name, function(rows){
+
+            res.status(200).send(rows);
+
+          });
 
         } else {
 

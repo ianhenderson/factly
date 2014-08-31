@@ -4,7 +4,8 @@ angular.module('app.edit', ['app.facts'])
   $scope.getAllFacts = data.getAllFacts;
 
   $scope.addFact = function(){
-    data.addFact($scope.fact);
+    var newFact = {fact: $scope.fact};
+    data.addFact(newFact);
     $scope.fact = '';
   };
 

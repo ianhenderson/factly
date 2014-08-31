@@ -12,7 +12,7 @@ angular.module('app.facts', [])
 
   //=================Dummy Data for testing only=======================
   for (var i = 0; i < 10; i++) {
-    facts.push("fact" + i);
+    facts.push({fact: "fact" + i});
   }
   //===================================================================
 
@@ -23,7 +23,11 @@ angular.module('app.facts', [])
     },
 
     addFact: function(fact){
-      facts.push(fact);
+      if (Array.isArray(fact)){
+        facts = facts.concat(fact);
+      } else {
+        facts.push(fact);
+      }
     },
 
     getNextFact: function(){

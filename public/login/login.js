@@ -1,5 +1,5 @@
-angular.module('app.login', [])
-.controller('loginCtrl', function($scope, $http){
+angular.module('app.login', ['app.facts'])
+.controller('loginCtrl', function($scope, $http, data){
 
   $scope.loginUser = function(){
 
@@ -15,11 +15,12 @@ angular.module('app.login', [])
 
     // Send login request to server
     $http(params)
-      .success(function(data, status){
-        console.log(status, data);
+      .success(function(response, status){
+        console.log(status, response);
+        data.addFact(response);
       })
-      .error(function(data, status){
-        console.log(status, data);
+      .error(function(response, status){
+        console.log(status, response);
       });
 
   };
