@@ -19,6 +19,6 @@
     "express": "~4.8.6",
     "sqlite3": "~2.2.7",
     "body-parser": "~1.6.6",
-    "bcrypt": "~0.8.0"
+    "bcrypt-nodejs": "0.0.3"
   }
 }

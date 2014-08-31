@@ -3,7 +3,7 @@ var file = 'test.db';
 var exists = fs.existsSync(file);
 var sqlite3 = require('sqlite3').verbose();
 var db = new sqlite3.Database(file);
-var bcrypt = require('bcrypt');
+var bcrypt = require('bcrypt-nodejs');
 
 if (!exists){
   console.log('Creating DB file.');
@@ -22,7 +22,7 @@ module.exports = {
     // First, we get users with provided name
     db.all('SELECT name, password, salt FROM users WHERE name = ?', name, function(err, rows){
       if (err) {
-        
+
         console.error(err);
 
       } else {
@@ -39,7 +39,7 @@ module.exports = {
           var hashedPassword = rows[0].password;
 
           // Generate hash from provided password and retrieved salt
-          bcrypt.hash(password, salt, function(err, hash){
+          bcrypt.hash(password, salt, null, function(err, hash){
 
             // Check against DB values
             if (hash === hashedPassword){
@@ -72,7 +72,7 @@ module.exports = {
       }
 
       // Generate salted hash
-      bcrypt.hash(password, salt, function(err, hash){
+      bcrypt.hash(password, salt, null, function(err, hash){
 
         if (err){
           console.error(err);
