@@ -10,6 +10,10 @@ if (!exists){
   fs.openSync(file, 'w');
   db.run('CREATE TABLE users (id INTEGER PRIMARY KEY, name VARCHAR(255), password VARCHAR(255), salt VARCHAR(255))');
   db.run('CREATE TABLE facts (id INTEGER, fact TEXT)');
+  db.run('CREATE TABLE kanji (id INTEGER, kanji TEXT)');
+  db.run('CREATE TABLE words (id INTEGER, word TEXT)');
+  db.run('CREATE TABLE kanji_words (kanji_id INTEGER, word_id INTEGER)');
+  db.run('CREATE TABLE study_queue (id INTEGER)');
 }
 
 // if ()
