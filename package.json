@@ -4,7 +4,8 @@
   "description": "factly ======",
   "main": "index.js",
   "scripts": {
-    "test": "mocha"
+    "test": "mocha",
+    "postinstall": "bower cache clean && bower install"
   },
   "repository": {
     "type": "git",
