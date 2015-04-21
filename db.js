@@ -10,9 +10,14 @@ if (!exists){
   fs.openSync(file, 'w');
   db.run('CREATE TABLE users (id INTEGER PRIMARY KEY, name VARCHAR(255), password VARCHAR(255), salt VARCHAR(255))');
   db.run('CREATE TABLE facts (user_id INTEGER, fact TEXT)');
+
   db.run('CREATE TABLE kanji (id INTEGER PRIMARY KEY, kanji TEXT)');
   db.run('CREATE TABLE words (id INTEGER PRIMARY KEY, word TEXT)');
   db.run('CREATE TABLE kanji_words (kanji_id INTEGER, word_id INTEGER, FOREIGN KEY(kanji_id) REFERENCES kanji(id), FOREIGN KEY(word_id) REFERENCES words(id))');
+
+  db.run('CREATE TABLE seen_words (user_id INTEGER, word_id INTEGER, FOREIGN KEY(user_id) REFERENCES users(id), FOREIGN KEY(word_id) REFERENCES words(id))');
+  db.run('CREATE TABLE seen_kanji (user_id INTEGER, kanji_id INTEGER, FOREIGN KEY(user_id) REFERENCES users(id), FOREIGN KEY(kanji_id) REFERENCES kanji(id))');
+
   db.run('CREATE TABLE study_queue (user_id INTEGER, kanji_id INTEGER, FOREIGN KEY(user_id) REFERENCES users(id), FOREIGN KEY(kanji_id) REFERENCES kanji(id))');
 }
 
@@ -96,7 +101,9 @@ module.exports = {
 
   addFact: function(id, fact){
     // db.run('INSERT INTO facts (id, fact) SELECT users.id, ? FROM users WHERE users.id = ?', fact, id);
-    db.run('INSERT INTO facts (user_id, fact) VALUES (?, ?)', id, fact);
+    db.run('INSERT INTO facts (user_id, fact) VALUES (?, ?)', id, fact, function(err){
+      console.log(err, this);
+    });
   },
 
   getFacts: function(id, cb){
@@ -110,21 +117,52 @@ module.exports = {
   },
 
   addWord: function(userId, word){
+    var kanji_id;
+    var word_id;
     // Add word to 'words' table.
-    db.run('INSERT INTO words (word) VALUES (?)', word);
+    db.run('INSERT INTO words (word) VALUES (?)', word, function(err){
+      word_id = this.lastID;
+    });
+
+    // TODO: clean non-kanji chars out
 
     // For each character in word:
     word.split('').forEach(function(char){
+
       // 1) Add kanji to 'kanji' table...
-      db.run('INSERT INTO kanji (kanji) VALUES (?)', char);
+      db.run('INSERT INTO kanji (kanji) VALUES (?)', char, function(err){
+        kanji_id = this.lastID;
+      });
+
       // 2) Add kanji_id to 'study_queue' table...
-      db.run('INSERT INTO study_queue (user_id, kanji_id) VALUES (?, ?)', char);
+      db.run('INSERT INTO study_queue (user_id, kanji_id) VALUES (?, ?)', userId, kanji_id);
+
       // 3) Add relationship to kanji_words junction table.
+      db.run('INSERT INTO kanji_words (kanji_id, word_id) VALUES (?, ?)', kanji_id, word_id);
+
+      // 4) Add to seen tables for current user_id
+      db.run('INSERT INTO seen_words (user_id, word_id) VALUES (?, ?)', userId, word_id);
+      db.run('INSERT INTO seen_kanji (user_id, kanji_id) VALUES (?, ?)', userId, kanji_id);
 
     });
-
-    // Get next character to study, and related words
-
-    // Update queue with seen characters
   },
+
+  // Get next character to study, and related words
+  getNextChar: function(userId){
+    // db.run('SELECT kanji FROM kanji, study_queue WHERE kanii.kanji_id = study_queue.kanji_id AND study_queue.user_id = ?', userId);
+  },
+
+  getKanji: function(userId){
+    db.run('SELECT kanji FROM seen_kanji WHERE seen_kanji.user_id = ?', userId, function(rows){
+      return rows;
+    });
+  },
+  getWords: function(userId){
+    db.run('SELECT words FROM seen_words WHERE seen_words.user_id = ?', userId, function(rows){
+      return rows;
+    });
+  },
+
+  // Update queue with seen characters
+  updateStudyQueue: function(userId, kanjiId){}
 };
