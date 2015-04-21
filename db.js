@@ -9,7 +9,7 @@ if (!exists){
   console.log('Creating DB file.');
   fs.openSync(file, 'w');
   db.run('CREATE TABLE users (id INTEGER PRIMARY KEY, name VARCHAR(255), password VARCHAR(255), salt VARCHAR(255))');
-  db.run('CREATE TABLE facts (id INTEGER PRIMARY KEY, fact TEXT)');
+  db.run('CREATE TABLE facts (user_id INTEGER, fact TEXT)');
   db.run('CREATE TABLE kanji (id INTEGER PRIMARY KEY, kanji TEXT)');
   db.run('CREATE TABLE words (id INTEGER PRIMARY KEY, word TEXT)');
   db.run('CREATE TABLE kanji_words (kanji_id INTEGER, word_id INTEGER, FOREIGN KEY(kanji_id) REFERENCES kanji(id), FOREIGN KEY(word_id) REFERENCES words(id))');
@@ -94,12 +94,13 @@ module.exports = {
 
   },
 
-  addFact: function(name, fact){
-    db.run('INSERT INTO facts (id, fact) SELECT users.id, ? FROM users WHERE users.name = ?', fact, name);
+  addFact: function(id, fact){
+    // db.run('INSERT INTO facts (id, fact) SELECT users.id, ? FROM users WHERE users.id = ?', fact, id);
+    db.run('INSERT INTO facts (user_id, fact) VALUES (?, ?)', id, fact);
   },
 
   getFacts: function(id, cb){
-    db.all('SELECT fact FROM users, facts WHERE facts.id = users.id AND users.id = ?', id, function(err, rows){
+    db.all('SELECT fact FROM users, facts WHERE facts.user_id = users.id AND users.id = ?', id, function(err, rows){
       if (err) {
         console.error(err);
       } else {

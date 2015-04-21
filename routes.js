@@ -3,6 +3,7 @@ var Promise = require('bluebird');
 
 module.exports = function(app){
 
+  // Check for session
   app.all('/api/facts/*', function(req, res, next){
 
     var c = req.cookies;
@@ -31,16 +32,18 @@ module.exports = function(app){
   // Add a new fact to a user's collection
   app.post('/api/facts', function(req, res){
 
-    if (!req.body.name || !req.body.fact){
+    if (!req.body.fact){
 
-      res.status(400).send("Error: POST must include a name and a fact.");
+      res.status(400).send("Error: POST must include a fact.");
 
     } else {
 
-      var name = req.body.name;
+      var c = req.cookies;
+      var id = c.session.id;
+      var name = c.session.name;
       var fact = req.body.fact;
 
-      db.addFact(name, fact);
+      db.addFact(id, fact);
 
       res.status(201).send(["Success! Fact added to ", name, "'s collection: ", fact].join(''));
     }
@@ -59,9 +62,9 @@ module.exports = function(app){
       var name = req.body.name;
       var password = req.body.password;
 
-      db.checkUser(name, password, function(rows){
+      db.checkUser(name, password, function(session){
 
-        if (rows.length > 0){
+        if (session){
 
           res.status(409).send("User already in database.");
 
@@ -123,7 +126,7 @@ module.exports = function(app){
 
   app.get('/*', function(req,res){
 
-    res.sendfile('./public/index.html');
+    res.sendFile('./public/index.html');
 
   });
 };
