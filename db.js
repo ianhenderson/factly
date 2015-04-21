@@ -24,7 +24,7 @@ module.exports = {
   checkUser: function(name, password, cb){
 
     // First, we get users with provided name
-    db.all('SELECT name, password, salt FROM users WHERE name = ?', name, function(err, rows){
+    db.all('SELECT id, name, password, salt FROM users WHERE name = ?', name, function(err, rows){
       if (err) {
 
         console.error(err);
@@ -34,7 +34,7 @@ module.exports = {
         // If no results, return
         if (!rows.length) {
 
-          cb(rows);
+          cb(null);
 
         } else {
 
@@ -48,11 +48,14 @@ module.exports = {
             // Check against DB values
             if (hash === hashedPassword){
 
-              cb(rows);
+              cb({
+                id: rows[0].id,
+                name: rows[0].name
+              });
 
             } else {
 
-              cb([]);
+              cb(null);
 
             }
 
@@ -105,14 +108,22 @@ module.exports = {
     });
   },
 
-  // Add word to 'words' table.
-  getNextFact: function(){},
+  addWord: function(userId, word){
+    // Add word to 'words' table.
+    db.run('INSERT INTO words (word) VALUES (?)', word);
 
-  // For each character in word, add kanji to 'kanji' table...
-  // ...add kanji_id to 'study_queue' table...
-  // ...and add relationship to kanji_words junction table.
+    // For each character in word:
+    word.split('').forEach(function(char){
+      // 1) Add kanji to 'kanji' table...
+      db.run('INSERT INTO kanji (kanji) VALUES (?)', char);
+      // 2) Add kanji_id to 'study_queue' table...
+      db.run('INSERT INTO study_queue (user_id, kanji_id) VALUES (?, ?)', char);
+      // 3) Add relationship to kanji_words junction table.
 
-  // Get next character to study, and related words
+    });
 
-  // Update queue with seen characters
+    // Get next character to study, and related words
+
+    // Update queue with seen characters
+  },
 };
