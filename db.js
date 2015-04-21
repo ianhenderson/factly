@@ -98,8 +98,8 @@ module.exports = {
     db.run('INSERT INTO facts (id, fact) SELECT users.id, ? FROM users WHERE users.name = ?', fact, name);
   },
 
-  getFacts: function(name, cb){
-    db.all('SELECT fact FROM users, facts WHERE facts.id = users.id AND users.name = ?', name, function(err, rows){
+  getFacts: function(id, cb){
+    db.all('SELECT fact FROM users, facts WHERE facts.id = users.id AND users.id = ?', id, function(err, rows){
       if (err) {
         console.error(err);
       } else {

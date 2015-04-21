@@ -1,13 +1,26 @@
 var db = require('./db.js');
+var Promise = require('bluebird');
 
 module.exports = function(app){
 
-  // Get facts for a particular user
-  app.get('/api/facts/:user', function(req, res){
+  app.all('/api/facts/*', function(req, res, next){
 
-    var name = req.params.user;
+    var c = req.cookies;
+    if (c && c.session && c.session.id) {
+      next();
+    } else {
+      res.status(403).send("User not authorized.");
+    }
 
-    db.getFacts(name, function(rows){
+  });
+
+  // Get facts
+  app.get('/api/facts', function(req, res){
+
+    var c = req.cookies;
+    var id = c.session.id;
+
+    db.getFacts(id, function(rows){
 
       res.status(200).send(rows);
 
@@ -69,6 +82,12 @@ module.exports = function(app){
   // Authenticate username/password
   app.post('/api/login', function(req,res){
 
+    var c = req.cookies;
+    if (c && c.session && c.session.id) {
+      res.status(200).send('Already logged in as ' + c.session.name);
+      return;
+    }
+
     if (!req.body.name || !req.body.password){
 
       res.status(400).send("Error: POST must include a name and password.");
@@ -78,15 +97,12 @@ module.exports = function(app){
       var name = req.body.name;
       var password = req.body.password;
 
-      db.checkUser(name, password, function(rows){
+      db.checkUser(name, password, function(session){
 
-        if (rows.length > 0){
+        if (session){
 
-          db.getFacts(name, function(rows){
-
-            res.status(200).send(rows);
-
-          });
+          res.cookie('session', session);
+          res.status(200).send(session);
 
         } else {
 
@@ -98,6 +114,11 @@ module.exports = function(app){
 
     }
 
+  });
+  // Logout & clear cookies
+  app.post('/api/logout', function(req,res){
+    res.clearCookie('session');
+    res.status(200).send('User signed out.');
   });
 
   app.get('/*', function(req,res){
