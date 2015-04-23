@@ -11,6 +11,7 @@ if (!exists){
   db.run('CREATE TABLE users (id INTEGER PRIMARY KEY, name VARCHAR(255), password VARCHAR(255), salt VARCHAR(255))');
   db.run('CREATE TABLE facts (user_id INTEGER, fact TEXT)');
 
+  // Tables of unique kanji, words and a junction table
   db.run('CREATE TABLE kanji (id INTEGER PRIMARY KEY, kanji TEXT UNIQUE)');
   db.run('CREATE TABLE words (id INTEGER PRIMARY KEY, word TEXT UNIQUE)');
   db.run('CREATE TABLE kanji_words (kanji_id INTEGER, word_id INTEGER, FOREIGN KEY(kanji_id) REFERENCES kanji(id), FOREIGN KEY(word_id) REFERENCES words(id))');
@@ -164,20 +165,20 @@ module.exports = fn = {
     // db.run('SELECT kanji FROM kanji, study_queue WHERE kanii.kanji_id = study_queue.kanji_id AND study_queue.user_id = ?', userId);
   },
 
-  getKanji: function(userId){
+  getAllSeenKanji: function(userId){
     db.get('SELECT kanji FROM seen_kanji WHERE seen_kanji.user_id = ?', userId, function(err, row){
       return row;
     });
   },
-  getWords: function(userId){
+  getAllSeenWords: function(userId){
     db.get('SELECT words FROM seen_words WHERE seen_words.user_id = ?', userId, function(err, row){
       return row;
     });
   },
 
-  // Add to q
+  // Add to queue
   enqueue: function(userId, kanjiIds){
-    db.get('SELECT queue from study_queue WHERE study_queue.user_id = ?', userId, function(err, row){
+    db.get('SELECT queue FROM study_queue WHERE study_queue.user_id = ?', userId, function(err, row){
       var q = row && JSON.parse(row.queue);
       q = q.concat(kanjiIds);
       var q_string = JSON.stringify(q);
@@ -186,22 +187,31 @@ module.exports = fn = {
 
   },
 
-  // Pop from q
+  // Update queue (ie. we're done with the last value)
   dequeue: function(userId){
-    db.get('SELECT queue from study_queue WHERE user_id = ?', userId, function(err, row){
-      var q = JSON.parse(row[0]);
+    db.get('SELECT queue FROM study_queue WHERE user_id = ?', userId, function(err, row){
+      var q = JSON.parse(row.queue);
       var first = q.shift();
       var q_string = JSON.stringify(q);
       db.run('UPDATE study_queue SET queue = ? WHERE user_id = ?', q_string, userId);
     });
   },
 
-  // Read from q
-  getLastFromQueue: function(userId, cb){
-    db.get('SELECT queue from study_queue WHERE user_id = ?', userId, function(err, row){
-      var q = JSON.parse(row[0]);
+  // Read from queue (next kanji_id to show to user)
+  getNextFromQueue: function(userId, cb){
+    db.get('SELECT queue FROM study_queue WHERE user_id = ?', userId, function(err, row){
+      var q = JSON.parse(row.queue);
+      if (q.length === 0) {
+        cb(null);
+        return;
+      }
       var first = q.shift();
-      cb(first);
+      var q_string = JSON.stringify(q);
+      db.run('UPDATE study_queue SET queue = ? WHERE user_id = ?', q_string, userId);
+      db.get('SELECT kanji FROM kanji WHERE id = ?', first, function(err, kanjiRow){
+        var nextKanji = kanjiRow.kanji;
+        cb(nextKanji);
+      });
     });
   },
 

@@ -15,6 +15,24 @@ module.exports = function(app){
 
   });
 
+  // Get kanji
+  app.get('/api/kanji', function(req, res){
+
+    var c = req.cookies;
+    var id = c.session.id;
+
+    db.getNextFromQueue(id, function(kanji){
+
+      if (kanji) {
+        res.status(200).send(kanji);
+      } else {
+        res.status(404).send("Nothing more to study.");
+      }
+
+    });
+
+  });
+
   // Get facts
   app.get('/api/facts', function(req, res){
 
