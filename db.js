@@ -11,20 +11,18 @@ if (!exists){
   db.run('CREATE TABLE users (id INTEGER PRIMARY KEY, name VARCHAR(255), password VARCHAR(255), salt VARCHAR(255))');
   db.run('CREATE TABLE facts (user_id INTEGER, fact TEXT)');
 
-  db.run('CREATE TABLE kanji (id INTEGER PRIMARY KEY, kanji TEXT)');
-  db.run('CREATE TABLE words (id INTEGER PRIMARY KEY, word TEXT)');
+  db.run('CREATE TABLE kanji (id INTEGER PRIMARY KEY, kanji TEXT UNIQUE)');
+  db.run('CREATE TABLE words (id INTEGER PRIMARY KEY, word TEXT UNIQUE)');
   db.run('CREATE TABLE kanji_words (kanji_id INTEGER, word_id INTEGER, FOREIGN KEY(kanji_id) REFERENCES kanji(id), FOREIGN KEY(word_id) REFERENCES words(id))');
 
   db.run('CREATE TABLE seen_words (user_id INTEGER, word_id INTEGER, FOREIGN KEY(user_id) REFERENCES users(id), FOREIGN KEY(word_id) REFERENCES words(id))');
   db.run('CREATE TABLE seen_kanji (user_id INTEGER, kanji_id INTEGER, FOREIGN KEY(user_id) REFERENCES users(id), FOREIGN KEY(kanji_id) REFERENCES kanji(id))');
 
-  db.run('CREATE TABLE study_queue (user_id INTEGER, kanji_id INTEGER, FOREIGN KEY(user_id) REFERENCES users(id), FOREIGN KEY(kanji_id) REFERENCES kanji(id))');
+  db.run('CREATE TABLE study_queue (user_id INTEGER, queue TEXT, FOREIGN KEY(user_id) REFERENCES users(id))');
 }
 
-// if ()
 
-
-module.exports = {
+module.exports = fn = {
 
   checkUser: function(name, password, cb){
 
@@ -91,7 +89,12 @@ module.exports = {
         }
 
         // Save name, hashed password and salt to DB
-        db.run('INSERT INTO users (name, password, salt) VALUES (?, ?, ?)', name, hash, salt);
+        db.run('INSERT INTO users (name, password, salt) VALUES (?, ?, ?)', name, hash, salt, function(err){
+          // Create initial entry in study_queue
+          var user_id = this.lastID;
+          var q = JSON.stringify([0]);
+          db.run('INSERT INTO study_queue (user_id, queue) VALUES (?, ?)', user_id, q);
+        });
 
       });
       
@@ -117,33 +120,42 @@ module.exports = {
   },
 
   addWord: function(userId, word){
-    var kanji_id;
-    var word_id;
-    // Add word to 'words' table.
-    db.run('INSERT INTO words (word) VALUES (?)', word, function(err){
-      word_id = this.lastID;
-    });
+    db.serialize(function(){
+      // Add word to 'words' table.
+      db.run('INSERT OR IGNORE INTO words (word) VALUES (?)', word);
+      db.get('SELECT id FROM words WHERE word = ?', word, function(err, row){
+        var word_id = row.id;
+        var kanjiIds = []; // to be pushed to study_queue
 
-    // TODO: clean non-kanji chars out
+        // Clean non-kanji chars out
+        word = fn.filterKanji(word);
 
-    // For each character in word:
-    word.split('').forEach(function(char){
+        // For each character in word:
+        word.split('').forEach(function(char){
 
-      // 1) Add kanji to 'kanji' table...
-      db.run('INSERT INTO kanji (kanji) VALUES (?)', char, function(err){
-        kanji_id = this.lastID;
+          // 1) Add kanji to 'kanji' table...
+          db.serialize(function(){
+            db.run('INSERT OR IGNORE INTO kanji (kanji) VALUES (?)', char);
+            db.get('SELECT id FROM kanji WHERE kanji = ?', char , function(err, row){
+              var kanji_id = row.id;
+              kanjiIds.push(kanji_id);
+
+              // 2) Add relationship to kanji_words junction table.
+              db.run('INSERT INTO kanji_words (kanji_id, word_id) VALUES (?, ?)', kanji_id, word_id);
+
+              // 3) Add to seen tables for current user_id
+              db.run('INSERT INTO seen_words (user_id, word_id) VALUES (?, ?)', userId, word_id);
+              db.run('INSERT INTO seen_kanji (user_id, kanji_id) VALUES (?, ?)', userId, kanji_id);
+            });
+          });
+
+        });
+
+        // 4) Add kanji_id to 'study_queue' table...
+        fn.enqueue(userId, kanjiIds);
+
       });
-
-      // 2) Add kanji_id to 'study_queue' table...
-      db.run('INSERT INTO study_queue (user_id, kanji_id) VALUES (?, ?)', userId, kanji_id);
-
-      // 3) Add relationship to kanji_words junction table.
-      db.run('INSERT INTO kanji_words (kanji_id, word_id) VALUES (?, ?)', kanji_id, word_id);
-
-      // 4) Add to seen tables for current user_id
-      db.run('INSERT INTO seen_words (user_id, word_id) VALUES (?, ?)', userId, word_id);
-      db.run('INSERT INTO seen_kanji (user_id, kanji_id) VALUES (?, ?)', userId, kanji_id);
-
+      
     });
   },
 
@@ -153,16 +165,50 @@ module.exports = {
   },
 
   getKanji: function(userId){
-    db.run('SELECT kanji FROM seen_kanji WHERE seen_kanji.user_id = ?', userId, function(rows){
-      return rows;
+    db.get('SELECT kanji FROM seen_kanji WHERE seen_kanji.user_id = ?', userId, function(err, row){
+      return row;
     });
   },
   getWords: function(userId){
-    db.run('SELECT words FROM seen_words WHERE seen_words.user_id = ?', userId, function(rows){
-      return rows;
+    db.get('SELECT words FROM seen_words WHERE seen_words.user_id = ?', userId, function(err, row){
+      return row;
     });
   },
 
-  // Update queue with seen characters
-  updateStudyQueue: function(userId, kanjiId){}
+  // Add to q
+  enqueue: function(userId, kanjiIds){
+    db.get('SELECT queue from study_queue WHERE study_queue.user_id = ?', userId, function(err, row){
+      var q = row && JSON.parse(row.queue);
+      q = q.concat(kanjiIds);
+      var q_string = JSON.stringify(q);
+      db.run('UPDATE study_queue SET queue = ? WHERE user_id = ?', q_string, userId);
+    });
+
+  },
+
+  // Pop from q
+  dequeue: function(userId){
+    db.get('SELECT queue from study_queue WHERE user_id = ?', userId, function(err, row){
+      var q = JSON.parse(row[0]);
+      var first = q.shift();
+      var q_string = JSON.stringify(q);
+      db.run('UPDATE study_queue SET queue = ? WHERE user_id = ?', q_string, userId);
+    });
+  },
+
+  // Read from q
+  getLastFromQueue: function(userId, cb){
+    db.get('SELECT queue from study_queue WHERE user_id = ?', userId, function(err, row){
+      var q = JSON.parse(row[0]);
+      var first = q.shift();
+      cb(first);
+    });
+  },
+
+  // Helper function to strip out non-kanji characters
+  filterKanji: function(str){
+     return str.replace(/[^\u4e00-\u9faf]/g, '');
+  },
+
+
 };

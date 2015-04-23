@@ -43,7 +43,8 @@ module.exports = function(app){
       var name = c.session.name;
       var fact = req.body.fact;
 
-      db.addFact(id, fact);
+      // db.addFact(id, fact);
+      db.addWord(id, fact);
 
       res.status(201).send(["Success! Fact added to ", name, "'s collection: ", fact].join(''));
     }
