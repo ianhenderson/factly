@@ -4,10 +4,22 @@ var Promise = require('bluebird');
 module.exports = function(app){
 
   // Check for session
-  app.all('/api/facts/*', function(req, res, next){
+  // function checkSession(req, res, next){
+  //   var c = req.cookies;
+  //   if (c && c.session && c.session.id) {
+  //     next();
+  //   } else {
+  //     res.status(403).send("User not authorized.");
+  //   }
+  // }
+  app.all('/api/*', function(req, res, next){
 
     var c = req.cookies;
-    if (c && c.session && c.session.id) {
+    var isLoginUrl = RegExp('/api/login').test(req.url);
+    var isLogoutUrl = RegExp('/api/logout').test(req.url);
+    if (isLoginUrl || isLogoutUrl) {
+      next();
+    } else if (c && c.session && c.session.id) {
       next();
     } else {
       res.status(403).send("User not authorized.");
@@ -145,7 +157,7 @@ module.exports = function(app){
 
   app.get('/*', function(req,res){
 
-    res.sendFile('./public/index.html');
+    res.sendFile('public/index.html');
 
   });
 };

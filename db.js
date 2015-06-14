@@ -11,14 +11,16 @@ if (!exists){
   db.run('CREATE TABLE users (id INTEGER PRIMARY KEY, name VARCHAR(255), password VARCHAR(255), salt VARCHAR(255))');
   db.run('CREATE TABLE facts (user_id INTEGER, fact TEXT)');
 
-  // Tables of unique kanji, words and a junction table
+  // Tables of all unique kanji, words and a junction table
   db.run('CREATE TABLE kanji (id INTEGER PRIMARY KEY, kanji TEXT UNIQUE)');
   db.run('CREATE TABLE words (id INTEGER PRIMARY KEY, word TEXT UNIQUE)');
   db.run('CREATE TABLE kanji_words (kanji_id INTEGER, word_id INTEGER, FOREIGN KEY(kanji_id) REFERENCES kanji(id), FOREIGN KEY(word_id) REFERENCES words(id))');
 
+  // Tables of seen words/kanji on a per-user basis
   db.run('CREATE TABLE seen_words (user_id INTEGER, word_id INTEGER, FOREIGN KEY(user_id) REFERENCES users(id), FOREIGN KEY(word_id) REFERENCES words(id))');
   db.run('CREATE TABLE seen_kanji (user_id INTEGER, kanji_id INTEGER, FOREIGN KEY(user_id) REFERENCES users(id), FOREIGN KEY(kanji_id) REFERENCES kanji(id))');
 
+  // Queue of items to study for each user
   db.run('CREATE TABLE study_queue (user_id INTEGER, queue TEXT, FOREIGN KEY(user_id) REFERENCES users(id))');
 }
 
