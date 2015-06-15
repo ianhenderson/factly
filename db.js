@@ -25,6 +25,10 @@ if (!exists){
   db.run('CREATE TABLE study_queue (user_id INTEGER, queue TEXT, FOREIGN KEY(user_id) REFERENCES users(id))');
 }
 
+function handleError(e) {
+  console.error(e);
+}
+
 
 module.exports = fn = {
 
@@ -109,12 +113,12 @@ module.exports = fn = {
         return bcrypt.hashAsync(password, salt, null)
           .then(function(hash){
             // Save name, hashed password and salt to DB
-            return db.run('INSERT INTO users (name, password, salt) VALUES (?, ?, ?)', name, hash, salt)
+            return db.runAsync('INSERT INTO users (name, password, salt) VALUES (?, ?, ?)', name, hash, salt)
               .then(function(){
                 // Create initial entry in study_queue
                 var user_id = this.lastID;
                 var q = JSON.stringify([0]);
-                return db.run('INSERT INTO study_queue (user_id, queue) VALUES (?, ?)', user_id, q)
+                return db.runAsync('INSERT INTO study_queue (user_id, queue) VALUES (?, ?)', user_id, q)
                   .then(function(){
                     return true;
                   });
@@ -156,11 +160,30 @@ module.exports = fn = {
 
   },
 
+  addFact2: function(id, fact){
+    return db.runAsync('INSERT INTO facts (user_id, fact) VALUES (?, ?)', id, fact)
+      .then(function(){
+        console.log(this);
+        return this;
+      })
+      .catch(function(e){
+        console.error(e);
+      });
+  },
+
   addFact: function(id, fact){
     // db.run('INSERT INTO facts (id, fact) SELECT users.id, ? FROM users WHERE users.id = ?', fact, id);
     db.run('INSERT INTO facts (user_id, fact) VALUES (?, ?)', id, fact, function(err){
       console.log(err, this);
     });
+  },
+
+  getFacts2: function(id){
+    return db.allAsync('SELECT fact FROM users, facts WHERE facts.user_id = users.id AND users.id = ?', id)
+      .then(function(rows){
+        return rows;
+      })
+      .catch(handleError);
   },
 
   getFacts: function(id, cb){
@@ -218,11 +241,28 @@ module.exports = fn = {
     // db.run('SELECT kanji FROM kanji, study_queue WHERE kanii.kanji_id = study_queue.kanji_id AND study_queue.user_id = ?', userId);
   },
 
+  getAllSeenKanji2: function(userId){
+    return db.getAsync('SELECT kanji FROM seen_kanji WHERE seen_kanji.user_id = ?', userId)
+      .then(function(row){
+        return row;
+      })
+      .catch(handleError);
+  },
+
   getAllSeenKanji: function(userId){
     db.get('SELECT kanji FROM seen_kanji WHERE seen_kanji.user_id = ?', userId, function(err, row){
       return row;
     });
   },
+
+  getAllSeenWords2: function(userId){
+    return db.getAsync('SELECT words FROM seen_words WHERE seen_words.user_id = ?', userId)
+      .then(function(row){
+        return row;
+      })
+      .catch(handleError);
+  },
+
   getAllSeenWords: function(userId){
     db.get('SELECT words FROM seen_words WHERE seen_words.user_id = ?', userId, function(err, row){
       return row;
