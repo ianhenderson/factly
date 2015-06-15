@@ -1,9 +1,10 @@
-var fs = require('fs');
+var Promise = require('bluebird');
+var fs = Promise.promisifyAll(require('fs'));
 var file = 'test.db';
 var exists = fs.existsSync(file);
-var sqlite3 = require('sqlite3').verbose();
+var sqlite3 = Promise.promisifyAll(require('sqlite3').verbose());
 var db = new sqlite3.Database(file);
-var bcrypt = require('bcrypt-nodejs');
+var bcrypt = Promise.promisifyAll(require('bcrypt-nodejs'));
 
 if (!exists){
   console.log('Creating DB file.');
@@ -26,6 +27,32 @@ if (!exists){
 
 
 module.exports = fn = {
+
+  checkUser2: function(name, password){
+    // First, we get users with provided name
+    return db.allAsync('SELECT id, name, password, salt FROM users WHERE name = ?', name)
+      .then(function(rows){
+        // Get salt, hashed password for user
+        var salt = rows[0].salt;
+        var hashedPassword = rows[0].password;
+        // Generate hash from provided password and retrieved salt
+        return bcrypt.hashAsync(password, salt, null)
+          .then(function(hash){
+            // Check against DB values
+            if (hash === hashedPassword){
+              return {
+                id: rows[0].id,
+                name: rows[0].name
+              };
+            } else {
+              return null;
+            }
+          });
+      })
+      .catch(function(e){
+        console.error(e);
+      });
+  },
 
   checkUser: function(name, password, cb){
 
@@ -73,6 +100,30 @@ module.exports = fn = {
 
     });
       
+  },
+  addNewUser2: function(name, password){
+    // Generate salt for password
+    return bcrypt.genSaltAsync(8)
+      .then(function(salt){
+        // Generate salted hash
+        return bcrypt.hashAsync(password, salt, null)
+          .then(function(hash){
+            // Save name, hashed password and salt to DB
+            return db.run('INSERT INTO users (name, password, salt) VALUES (?, ?, ?)', name, hash, salt)
+              .then(function(){
+                // Create initial entry in study_queue
+                var user_id = this.lastID;
+                var q = JSON.stringify([0]);
+                return db.run('INSERT INTO study_queue (user_id, queue) VALUES (?, ?)', user_id, q)
+                  .then(function(){
+                    return true;
+                  });
+              });
+          });
+      })
+      .catch(function(e){
+        console.error(e);
+      });
   },
 
   addNewUser: function(name, password){
