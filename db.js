@@ -209,34 +209,38 @@ module.exports = fn = {
 
           // Clean non-kanji chars out
           word = fn.filterKanji(word);
+          var chars = word.split('');
 
-          // For each character in word:
-          word.split('').forEach(function(char){
+          // For each character in word...
+          var promises = chars.map(function(char){
+            // ...create a promise:
+            return new Promise(function(resolve, reject){
+              db.serialize(function(){
+                // 1) Add kanji to 'kanji' table...
+                db.run('INSERT OR IGNORE INTO kanji (kanji) VALUES (?)', char);
+                db.getAsync('SELECT id FROM kanji WHERE kanji = ?', char)
+                  .then(function(row){
+                    var kanji_id = row.id;
+                    kanjiIds.push(kanji_id);
 
-            db.serialize(function(){
-              // 1) Add kanji to 'kanji' table...
-              db.run('INSERT OR IGNORE INTO kanji (kanji) VALUES (?)', char);
-              db.getAsync('SELECT id FROM kanji WHERE kanji = ?', char)
-                .then(function(row){
-                  var kanji_id = row.id;
-                  kanjiIds.push(kanji_id);
+                    // 2) Add relationship to kanji_words junction table.
+                    db.run('INSERT INTO kanji_words (kanji_id, word_id) VALUES (?, ?)', kanji_id, word_id);
 
-                  // 2) Add relationship to kanji_words junction table.
-                  db.run('INSERT INTO kanji_words (kanji_id, word_id) VALUES (?, ?)', kanji_id, word_id);
-
-                  // 3) Add to seen tables for current user_id
-                  db.run('INSERT INTO seen_words (user_id, word_id) VALUES (?, ?)', userId, word_id);
-                  db.run('INSERT INTO seen_kanji (user_id, kanji_id) VALUES (?, ?)', userId, kanji_id);
-                });
+                    // 3) Add to seen tables for current user_id
+                    db.run('INSERT INTO seen_words (user_id, word_id) VALUES (?, ?)', userId, word_id);
+                    db.run('INSERT INTO seen_kanji (user_id, kanji_id) VALUES (?, ?)', userId, kanji_id);
+                    resolve(true);
+                  });
+              });
             });
-
           });
-
-          // 4) Add kanji_id to 'study_queue' table...
-          fn.enqueue(userId, kanjiIds);
-
+          // Once all are done:
+          return Promise.all(promises)
+            .then(function(){
+              // 4) Add kanji_id(s) to 'study_queue' table...
+              fn.enqueue(userId, kanjiIds);
+            });
       });
-      
     })
     .catch(handleError);
   
