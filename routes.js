@@ -17,7 +17,8 @@ module.exports = function(app){
     var c = req.cookies;
     var isLoginUrl = RegExp('/api/login').test(req.url);
     var isLogoutUrl = RegExp('/api/logout').test(req.url);
-    if (isLoginUrl || isLogoutUrl) {
+    var isAddUserUrl = RegExp('/api/adduser').test(req.url);
+    if (isLoginUrl || isLogoutUrl || isAddUserUrl) {
       next();
     } else if (c && c.session && c.session.id) {
       next();
@@ -101,7 +102,10 @@ module.exports = function(app){
 
         } else {
 
-          db.addNewUser(name, password);
+          db.addNewUser_(name, password)
+            .then(function(){
+              
+            });
 
           res.status(201).send(["Success! New user added: ", name].join(''));
 
@@ -131,7 +135,9 @@ module.exports = function(app){
       var name = req.body.name;
       var password = req.body.password;
 
-      db.checkUser(name, password, function(session){
+      // db.checkUser(name, password, function(session){
+      db.checkUser_(name, password)
+      .then(function(session){
 
         if (session){
 
@@ -155,7 +161,7 @@ module.exports = function(app){
     res.status(200).send('User signed out.');
   });
 
-  app.get('/*', function(req,res){
+  app.get('/', function(req,res){
 
     res.sendFile('public/index.html');
 
