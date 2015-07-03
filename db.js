@@ -105,7 +105,7 @@ module.exports = fn = {
     });
       
   },
-  
+
   addNewUser_: function(name, password){
     // Generate salt for password
     return bcrypt.genSaltAsync(8)
@@ -319,9 +319,13 @@ module.exports = fn = {
   enqueue: function(userId, kanjiIds){
     db.get('SELECT queue FROM study_queue WHERE study_queue.user_id = ?', userId, function(err, row){
       var q = row && JSON.parse(row.queue);
-      q = q.concat(kanjiIds);
+      q = q ? q.concat(kanjiIds) : kanjiIds ;
       var q_string = JSON.stringify(q);
-      db.run('UPDATE study_queue SET queue = ? WHERE user_id = ?', q_string, userId);
+      if (row){
+        db.run('UPDATE study_queue SET queue = ? WHERE user_id = ?', q_string, userId);
+      } else {
+        db.run('INSERT INTO study_queue (user_id, queue) VALUES (?, ?)', userId, q_string);
+      }
     });
 
   },
