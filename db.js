@@ -32,7 +32,7 @@ function handleError(e) {
 
 module.exports = fn = {
 
-  checkUser2: function(name, password){
+  checkUser_: function(name, password){
     // First, we get users with provided name
     return db.allAsync('SELECT id, name, password, salt FROM users WHERE name = ?', name)
       .then(function(rows){
@@ -105,7 +105,8 @@ module.exports = fn = {
     });
       
   },
-  addNewUser2: function(name, password){
+  
+  addNewUser_: function(name, password){
     // Generate salt for password
     return bcrypt.genSaltAsync(8)
       .then(function(salt){
@@ -160,7 +161,7 @@ module.exports = fn = {
 
   },
 
-  addFact2: function(id, fact){
+  addFact_: function(id, fact){
     return db.runAsync('INSERT INTO facts (user_id, fact) VALUES (?, ?)', id, fact)
       .then(function(){
         console.log(this);
@@ -178,7 +179,7 @@ module.exports = fn = {
     });
   },
 
-  getFacts2: function(id){
+  getFacts_: function(id){
     return db.allAsync('SELECT fact FROM users, facts WHERE facts.user_id = users.id AND users.id = ?', id)
       .then(function(rows){
         return rows;
@@ -195,6 +196,51 @@ module.exports = fn = {
       }
     });
   },
+
+  addWord_: function(userId, word){
+    return db.serializeAsync(function(){
+      // Add word to 'words' table.
+      db.run('INSERT OR IGNORE INTO words (word) VALUES (?)', word);
+      // return db.getAsync('SELECT id FROM words WHERE word = ?', word, function(err, row){
+      return db.getAsync('SELECT id FROM words WHERE word = ?', word)
+        .then(function(row){
+          var word_id = row.id;
+          var kanjiIds = []; // to be pushed to study_queue
+
+          // Clean non-kanji chars out
+          word = fn.filterKanji(word);
+
+          // For each character in word:
+          word.split('').forEach(function(char){
+
+            db.serialize(function(){
+              // 1) Add kanji to 'kanji' table...
+              db.run('INSERT OR IGNORE INTO kanji (kanji) VALUES (?)', char);
+              db.getAsync('SELECT id FROM kanji WHERE kanji = ?', char)
+                .then(function(row){
+                  var kanji_id = row.id;
+                  kanjiIds.push(kanji_id);
+
+                  // 2) Add relationship to kanji_words junction table.
+                  db.run('INSERT INTO kanji_words (kanji_id, word_id) VALUES (?, ?)', kanji_id, word_id);
+
+                  // 3) Add to seen tables for current user_id
+                  db.run('INSERT INTO seen_words (user_id, word_id) VALUES (?, ?)', userId, word_id);
+                  db.run('INSERT INTO seen_kanji (user_id, kanji_id) VALUES (?, ?)', userId, kanji_id);
+                });
+            });
+
+          });
+
+          // 4) Add kanji_id to 'study_queue' table...
+          fn.enqueue(userId, kanjiIds);
+
+      });
+      
+    })
+    .catch(handleError);
+  
+},
 
   addWord: function(userId, word){
     db.serialize(function(){
@@ -241,7 +287,7 @@ module.exports = fn = {
     // db.run('SELECT kanji FROM kanji, study_queue WHERE kanii.kanji_id = study_queue.kanji_id AND study_queue.user_id = ?', userId);
   },
 
-  getAllSeenKanji2: function(userId){
+  getAllSeenKanji_: function(userId){
     return db.getAsync('SELECT kanji FROM seen_kanji WHERE seen_kanji.user_id = ?', userId)
       .then(function(row){
         return row;
@@ -255,7 +301,7 @@ module.exports = fn = {
     });
   },
 
-  getAllSeenWords2: function(userId){
+  getAllSeenWords_: function(userId){
     return db.getAsync('SELECT words FROM seen_words WHERE seen_words.user_id = ?', userId)
       .then(function(row){
         return row;
