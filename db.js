@@ -58,53 +58,53 @@ module.exports = fn = {
       });
   },
 
-  checkUser: function(name, password, cb){
+  // checkUser: function(name, password, cb){
 
-    // First, we get users with provided name
-    db.all('SELECT id, name, password, salt FROM users WHERE name = ?', name, function(err, rows){
-      if (err) {
+  //   // First, we get users with provided name
+  //   db.all('SELECT id, name, password, salt FROM users WHERE name = ?', name, function(err, rows){
+  //     if (err) {
 
-        console.error(err);
+  //       console.error(err);
 
-      } else {
+  //     } else {
 
-        // If no results, return
-        if (!rows.length) {
+  //       // If no results, return
+  //       if (!rows.length) {
 
-          cb(null);
+  //         cb(null);
 
-        } else {
+  //       } else {
 
-          // Get salt, hashed password for user
-          var salt = rows[0].salt;
-          var hashedPassword = rows[0].password;
+  //         // Get salt, hashed password for user
+  //         var salt = rows[0].salt;
+  //         var hashedPassword = rows[0].password;
 
-          // Generate hash from provided password and retrieved salt
-          bcrypt.hash(password, salt, null, function(err, hash){
+  //         // Generate hash from provided password and retrieved salt
+  //         bcrypt.hash(password, salt, null, function(err, hash){
 
-            // Check against DB values
-            if (hash === hashedPassword){
+  //           // Check against DB values
+  //           if (hash === hashedPassword){
 
-              cb({
-                id: rows[0].id,
-                name: rows[0].name
-              });
+  //             cb({
+  //               id: rows[0].id,
+  //               name: rows[0].name
+  //             });
 
-            } else {
+  //           } else {
 
-              cb(null);
+  //             cb(null);
 
-            }
+  //           }
 
-          });
+  //         });
 
-        }
+  //       }
 
-      }
+  //     }
 
-    });
+  //   });
       
-  },
+  // },
 
   addNewUser_: function(name, password){
     // Generate salt for password
@@ -131,35 +131,35 @@ module.exports = fn = {
       });
   },
 
-  addNewUser: function(name, password){
+  // addNewUser: function(name, password){
 
-    // Generate salt for password
-    bcrypt.genSalt(8, function(err, salt){
+  //   // Generate salt for password
+  //   bcrypt.genSalt(8, function(err, salt){
 
-      if (err){
-        console.error(err);
-      }
+  //     if (err){
+  //       console.error(err);
+  //     }
 
-      // Generate salted hash
-      bcrypt.hash(password, salt, null, function(err, hash){
+  //     // Generate salted hash
+  //     bcrypt.hash(password, salt, null, function(err, hash){
 
-        if (err){
-          console.error(err);
-        }
+  //       if (err){
+  //         console.error(err);
+  //       }
 
-        // Save name, hashed password and salt to DB
-        db.run('INSERT INTO users (name, password, salt) VALUES (?, ?, ?)', name, hash, salt, function(err){
-          // Create initial entry in study_queue
-          var user_id = this.lastID;
-          var q = JSON.stringify([0]);
-          db.run('INSERT INTO study_queue (user_id, queue) VALUES (?, ?)', user_id, q);
-        });
+  //       // Save name, hashed password and salt to DB
+  //       db.run('INSERT INTO users (name, password, salt) VALUES (?, ?, ?)', name, hash, salt, function(err){
+  //         // Create initial entry in study_queue
+  //         var user_id = this.lastID;
+  //         var q = JSON.stringify([0]);
+  //         db.run('INSERT INTO study_queue (user_id, queue) VALUES (?, ?)', user_id, q);
+  //       });
 
-      });
+  //     });
       
-    });
+  //   });
 
-  },
+  // },
 
   addFact_: function(id, fact){
     return db.runAsync('INSERT INTO facts (user_id, fact) VALUES (?, ?)', id, fact)
@@ -172,12 +172,12 @@ module.exports = fn = {
       });
   },
 
-  addFact: function(id, fact){
-    // db.run('INSERT INTO facts (id, fact) SELECT users.id, ? FROM users WHERE users.id = ?', fact, id);
-    db.run('INSERT INTO facts (user_id, fact) VALUES (?, ?)', id, fact, function(err){
-      console.log(err, this);
-    });
-  },
+  // addFact: function(id, fact){
+  //   // db.run('INSERT INTO facts (id, fact) SELECT users.id, ? FROM users WHERE users.id = ?', fact, id);
+  //   db.run('INSERT INTO facts (user_id, fact) VALUES (?, ?)', id, fact, function(err){
+  //     console.log(err, this);
+  //   });
+  // },
 
   getFacts_: function(id){
     return db.allAsync('SELECT fact FROM users, facts WHERE facts.user_id = users.id AND users.id = ?', id)
@@ -187,15 +187,15 @@ module.exports = fn = {
       .catch(handleError);
   },
 
-  getFacts: function(id, cb){
-    db.all('SELECT fact FROM users, facts WHERE facts.user_id = users.id AND users.id = ?', id, function(err, rows){
-      if (err) {
-        console.error(err);
-      } else {
-        cb(rows);
-      }
-    });
-  },
+  // getFacts: function(id, cb){
+  //   db.all('SELECT fact FROM users, facts WHERE facts.user_id = users.id AND users.id = ?', id, function(err, rows){
+  //     if (err) {
+  //       console.error(err);
+  //     } else {
+  //       cb(rows);
+  //     }
+  //   });
+  // },
 
   addWord_: function(userId, word){
     return db.serializeAsync(function(){
@@ -246,45 +246,45 @@ module.exports = fn = {
   
 },
 
-  addWord: function(userId, word){
-    db.serialize(function(){
-      // Add word to 'words' table.
-      db.run('INSERT OR IGNORE INTO words (word) VALUES (?)', word);
-      db.get('SELECT id FROM words WHERE word = ?', word, function(err, row){
-        var word_id = row.id;
-        var kanjiIds = []; // to be pushed to study_queue
+  // addWord: function(userId, word){
+  //   db.serialize(function(){
+  //     // Add word to 'words' table.
+  //     db.run('INSERT OR IGNORE INTO words (word) VALUES (?)', word);
+  //     db.get('SELECT id FROM words WHERE word = ?', word, function(err, row){
+  //       var word_id = row.id;
+  //       var kanjiIds = []; // to be pushed to study_queue
 
-        // Clean non-kanji chars out
-        word = fn.filterKanji(word);
+  //       // Clean non-kanji chars out
+  //       word = fn.filterKanji(word);
 
-        // For each character in word:
-        word.split('').forEach(function(char){
+  //       // For each character in word:
+  //       word.split('').forEach(function(char){
 
-          // 1) Add kanji to 'kanji' table...
-          db.serialize(function(){
-            db.run('INSERT OR IGNORE INTO kanji (kanji) VALUES (?)', char);
-            db.get('SELECT id FROM kanji WHERE kanji = ?', char , function(err, row){
-              var kanji_id = row.id;
-              kanjiIds.push(kanji_id);
+  //         // 1) Add kanji to 'kanji' table...
+  //         db.serialize(function(){
+  //           db.run('INSERT OR IGNORE INTO kanji (kanji) VALUES (?)', char);
+  //           db.get('SELECT id FROM kanji WHERE kanji = ?', char , function(err, row){
+  //             var kanji_id = row.id;
+  //             kanjiIds.push(kanji_id);
 
-              // 2) Add relationship to kanji_words junction table.
-              db.run('INSERT INTO kanji_words (kanji_id, word_id) VALUES (?, ?)', kanji_id, word_id);
+  //             // 2) Add relationship to kanji_words junction table.
+  //             db.run('INSERT INTO kanji_words (kanji_id, word_id) VALUES (?, ?)', kanji_id, word_id);
 
-              // 3) Add to seen tables for current user_id
-              db.run('INSERT INTO seen_words (user_id, word_id) VALUES (?, ?)', userId, word_id);
-              db.run('INSERT INTO seen_kanji (user_id, kanji_id) VALUES (?, ?)', userId, kanji_id);
-            });
-          });
+  //             // 3) Add to seen tables for current user_id
+  //             db.run('INSERT INTO seen_words (user_id, word_id) VALUES (?, ?)', userId, word_id);
+  //             db.run('INSERT INTO seen_kanji (user_id, kanji_id) VALUES (?, ?)', userId, kanji_id);
+  //           });
+  //         });
 
-        });
+  //       });
 
-        // 4) Add kanji_id to 'study_queue' table...
-        fn.enqueue(userId, kanjiIds);
+  //       // 4) Add kanji_id to 'study_queue' table...
+  //       fn.enqueue(userId, kanjiIds);
 
-      });
+  //     });
       
-    });
-  },
+  //   });
+  // },
 
   // Get next character to study, and related words
   getNextChar: function(userId){
@@ -299,11 +299,11 @@ module.exports = fn = {
       .catch(handleError);
   },
 
-  getAllSeenKanji: function(userId){
-    db.get('SELECT kanji FROM seen_kanji WHERE seen_kanji.user_id = ?', userId, function(err, row){
-      return row;
-    });
-  },
+  // getAllSeenKanji: function(userId){
+  //   db.get('SELECT kanji FROM seen_kanji WHERE seen_kanji.user_id = ?', userId, function(err, row){
+  //     return row;
+  //   });
+  // },
 
   getAllSeenWords_: function(userId){
     return db.getAsync('SELECT words FROM seen_words WHERE seen_words.user_id = ?', userId)
@@ -313,11 +313,11 @@ module.exports = fn = {
       .catch(handleError);
   },
 
-  getAllSeenWords: function(userId){
-    db.get('SELECT words FROM seen_words WHERE seen_words.user_id = ?', userId, function(err, row){
-      return row;
-    });
-  },
+  // getAllSeenWords: function(userId){
+  //   db.get('SELECT words FROM seen_words WHERE seen_words.user_id = ?', userId, function(err, row){
+  //     return row;
+  //   });
+  // },
 
   // Add to queue
   enqueue: function(userId, kanjiIds){
@@ -342,6 +342,27 @@ module.exports = fn = {
       var q_string = JSON.stringify(q);
       db.run('UPDATE study_queue SET queue = ? WHERE user_id = ?', q_string, userId);
     });
+  },
+
+  // Read from queue (next kanji_id to show to user)
+  getNextFromQueue_: function(userId, cb){
+    return db.getAsync('SELECT queue FROM study_queue WHERE user_id = ?', userId)
+      .then(function(row){
+        var q = JSON.parse(row.queue);
+        if (q.length === 0) {
+          cb(null);
+          return;
+        }
+        var first = q.shift();
+        var q_string = JSON.stringify(q);
+        db.run('UPDATE study_queue SET queue = ? WHERE user_id = ?', q_string, userId);
+        return db.getAsync('SELECT kanji FROM kanji WHERE id = ?', first)
+          .then(function(kanjiRow){
+            var nextKanji = kanjiRow.kanji;
+            return nextKanji;
+          });
+      })
+      .catch(handleError);
   },
 
   // Read from queue (next kanji_id to show to user)

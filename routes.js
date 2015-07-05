@@ -34,15 +34,17 @@ module.exports = function(app){
     var c = req.cookies;
     var id = c.session.id;
 
-    db.getNextFromQueue(id, function(kanji){
+    // db.getNextFromQueue(id, function(kanji){
+    db.getNextFromQueue_(id)
+      .then(function(kanji){
 
-      if (kanji) {
-        res.status(200).send(kanji);
-      } else {
-        res.status(404).send("Nothing more to study.");
-      }
+        if (kanji) {
+          res.status(200).send(kanji);
+        } else {
+          res.status(404).send("Nothing more to study.");
+        }
 
-    });
+      });
 
   });
 
@@ -52,11 +54,12 @@ module.exports = function(app){
     var c = req.cookies;
     var id = c.session.id;
 
-    db.getFacts(id, function(rows){
+    db.getFacts_(id)
+      .then(function(rows){
 
-      res.status(200).send(rows);
+        res.status(200).send(rows);
 
-    });
+      });
 
   });
 
@@ -94,24 +97,25 @@ module.exports = function(app){
       var name = req.body.name;
       var password = req.body.password;
 
-      db.checkUser(name, password, function(session){
+      db.checkUser_(name, password)
+        .then(function(session){
 
-        if (session){
+          if (session){
 
-          res.status(409).send("User already in database.");
+            res.status(409).send("User already in database.");
 
-        } else {
+          } else {
 
-          db.addNewUser_(name, password)
-            .then(function(){
-              
-            });
+            db.addNewUser_(name, password)
+              .then(function(){
+                
+              });
 
-          res.status(201).send(["Success! New user added: ", name].join(''));
+            res.status(201).send(["Success! New user added: ", name].join(''));
 
-        }
+          }
 
-      });
+        });
 
     }
 
@@ -135,7 +139,6 @@ module.exports = function(app){
       var name = req.body.name;
       var password = req.body.password;
 
-      // db.checkUser(name, password, function(session){
       db.checkUser_(name, password)
       .then(function(session){
 
