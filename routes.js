@@ -1,4 +1,4 @@
-var db = require('./db.js');
+var db = require('./db.js')();
 var Promise = require('bluebird');
 
 module.exports = function(app){
@@ -98,20 +98,20 @@ module.exports = function(app){
       var password = req.body.password;
 
       db.checkUser_(name, password)
-        .then(function(session){
+        .then(function(user){
 
-          if (session){
+          if (user.exists){
 
             res.status(409).send("User already in database.");
 
           } else {
 
             db.addNewUser_(name, password)
-              .then(function(){
+              .then(function(user){
+
+                res.status(201).send(user);
                 
               });
-
-            res.status(201).send(["Success! New user added: ", name].join(''));
 
           }
 
@@ -142,10 +142,10 @@ module.exports = function(app){
       db.checkUser_(name, password)
       .then(function(session){
 
-        if (session){
+        if (session.data){
 
-          res.cookie('session', session);
-          res.status(200).send(session);
+          res.cookie('session', session.data);
+          res.status(200).send(session.data);
 
         } else {
 
