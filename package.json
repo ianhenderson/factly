@@ -2,7 +2,7 @@
   "name": "factly",
   "version": "0.0.0",
   "description": "factly ======",
-  "main": "index.js",
+  "main": "server.js",
   "scripts": {
     "test": "mocha",
     "postinstall": "bower cache clean && bower install"
