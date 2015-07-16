@@ -112,13 +112,6 @@ module.exports = function(config){
         });
     },
 
-    // addFact: function(id, fact){
-    //   // db.run('INSERT INTO facts (id, fact) SELECT users.id, ? FROM users WHERE users.id = ?', fact, id);
-    //   db.run('INSERT INTO facts (user_id, fact) VALUES (?, ?)', id, fact, function(err){
-    //     console.log(err, this);
-    //   });
-    // },
-
     getFacts_: function(id){
       return db.allAsync('SELECT fact FROM users, facts WHERE facts.user_id = users.id AND users.id = ?', id)
         .then(function(rows){
@@ -126,16 +119,6 @@ module.exports = function(config){
         })
         .catch(handleError);
     },
-
-    // getFacts: function(id, cb){
-    //   db.all('SELECT fact FROM users, facts WHERE facts.user_id = users.id AND users.id = ?', id, function(err, rows){
-    //     if (err) {
-    //       console.error(err);
-    //     } else {
-    //       cb(rows);
-    //     }
-    //   });
-    // },
 
     addWord_: function(userId, word){
       var kanjiIds;
@@ -181,48 +164,7 @@ module.exports = function(config){
           return added;
         })
         .catch(handleError);
-    
-  },
-
-    // addWord: function(userId, word){
-    //   db.serialize(function(){
-    //     // Add word to 'words' table.
-    //     db.run('INSERT OR IGNORE INTO words (word) VALUES (?)', word);
-    //     db.get('SELECT id FROM words WHERE word = ?', word, function(err, row){
-    //       var word_id = row.id;
-    //       var kanjiIds = []; // to be pushed to study_queue
-
-    //       // Clean non-kanji chars out
-    //       word = fn.filterKanji(word);
-
-    //       // For each character in word:
-    //       word.split('').forEach(function(char){
-
-    //         // 1) Add kanji to 'kanji' table...
-    //         db.serialize(function(){
-    //           db.run('INSERT OR IGNORE INTO kanji (kanji) VALUES (?)', char);
-    //           db.get('SELECT id FROM kanji WHERE kanji = ?', char , function(err, row){
-    //             var kanji_id = row.id;
-    //             kanjiIds.push(kanji_id);
-
-    //             // 2) Add relationship to kanji_words junction table.
-    //             db.run('INSERT INTO kanji_words (kanji_id, word_id) VALUES (?, ?)', kanji_id, word_id);
-
-    //             // 3) Add to seen tables for current user_id
-    //             db.run('INSERT INTO seen_words (user_id, word_id) VALUES (?, ?)', userId, word_id);
-    //             db.run('INSERT INTO seen_kanji (user_id, kanji_id) VALUES (?, ?)', userId, kanji_id);
-    //           });
-    //         });
-
-    //       });
-
-    //       // 4) Add kanji_id to 'study_queue' table...
-    //       fn.enqueue(userId, kanjiIds);
-
-    //     });
-        
-    //   });
-    // },
+    },
 
     // Get next character to study, and related words
     getNextChar: function(userId){
@@ -237,12 +179,6 @@ module.exports = function(config){
         .catch(handleError);
     },
 
-    // getAllSeenKanji: function(userId){
-    //   db.get('SELECT kanji FROM seen_kanji WHERE seen_kanji.user_id = ?', userId, function(err, row){
-    //     return row;
-    //   });
-    // },
-
     getAllSeenWords_: function(userId){
       return db.getAsync('SELECT words FROM seen_words WHERE seen_words.user_id = ?', userId)
         .then(function(row){
@@ -250,12 +186,6 @@ module.exports = function(config){
         })
         .catch(handleError);
     },
-
-    // getAllSeenWords: function(userId){
-    //   db.get('SELECT words FROM seen_words WHERE seen_words.user_id = ?', userId, function(err, row){
-    //     return row;
-    //   });
-    // },
 
     // Add to queue
     enqueue: function(userId, kanjiIds){
@@ -272,7 +202,6 @@ module.exports = function(config){
           return true;
         })
         .catch(handleError);
-
     },
 
     // Update queue (ie. we're done with the last value)
@@ -328,5 +257,7 @@ module.exports = function(config){
     filterKanji: function(str){
        return str.replace(/[^\u4e00-\u9faf]/g, '');
     }
+
   };
+  
 };
