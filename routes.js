@@ -3,31 +3,6 @@ var Promise = require('bluebird');
 
 module.exports = function(app){
 
-  // Check for session
-  // function checkSession(req, res, next){
-  //   var c = req.cookies;
-  //   if (c && c.session && c.session.id) {
-  //     next();
-  //   } else {
-  //     res.status(403).send("User not authorized.");
-  //   }
-  // }
-  app.all('/api/*', function(req, res, next){
-
-    var c = req.cookies;
-    var isLoginUrl = RegExp('/api/login').test(req.url);
-    var isLogoutUrl = RegExp('/api/logout').test(req.url);
-    var isAddUserUrl = RegExp('/api/adduser').test(req.url);
-    if (isLoginUrl || isLogoutUrl || isAddUserUrl) {
-      next();
-    } else if (c && c.session && c.session.id) {
-      next();
-    } else {
-      res.status(403).send("User not authorized.");
-    }
-
-  });
-
   // Get kanji
   app.get('/api/kanji', function(req, res){
 
