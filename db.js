@@ -1,7 +1,7 @@
 var Promise = require('bluebird');
 var fs = Promise.promisifyAll(require('fs'));
 var sqlite3 = Promise.promisifyAll(require('sqlite3').verbose());
-var bcrypt = Promise.promisifyAll(require('bcrypt'));
+var bcrypt = Promise.promisifyAll(require('bcryptjs'));
 
 module.exports = function(config){
   config = config || {};
