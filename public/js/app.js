@@ -1,4 +1,4 @@
-angular.module('engage', ['ui.router', 'ngMaterial'])
+angular.module('engage', ['ui.router', 'ngResource', 'ngMaterial'])
 
 ///////////////////// Setup & Config /////////////////////
 
@@ -152,11 +152,9 @@ angular.module('engage', ['ui.router', 'ngMaterial'])
         },
     };
 })
-.factory('K', function($http, $q, LocalStorage){
+.factory('K', function($resource, LocalStorage){
 
-    // Public methods to be used elsewhere in the app.
-    return K = {
-    };
+    return $resource();
 })
 
 ///////////////////// Controllers /////////////////////
