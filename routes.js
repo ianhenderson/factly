@@ -101,11 +101,11 @@ module.exports = function(app){
 
     var c = req.cookies;
     if (c && c.session && c.session.id) {
-      res.status(200).send('Already logged in as ' + c.session.name);
+      res.status(400).send('Already logged in as ' + c.session.name);
       return;
     }
 
-    if (!req.body.name || !req.body.password){
+    if (!req.body.username || !req.body.password){
 
       res.status(400).send("Error: POST must include a name and password.");
 
