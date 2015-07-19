@@ -165,34 +165,27 @@ angular.module('engage', ['ui.router', 'ngMaterial'])
     }
 
     return auth = {
-        simpleLogin: function(userName, password){
+        simpleLogin: function(username, password){
 
             var loginConfig = {
                 method: 'POST',
-                url: LocalStorage.get('BASE_URL') + '/widget/rest/RestWidgetService/login',
-                params: {
-                    userName: userName,
+                url: '/api/login',
+                data: {
+                    username: username,
                     password: password
-                },
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded'
-                },
-                data: {} // Without this property, Angular will strip the 'Content-Type' header above (see Angular v1.3.9 source line 9317)
+                }
             };
 
-            return $q(function(resolve, reject){
-                $http(loginConfig)
-                    .success(function(data, status, headers, config){
-                        LocalStorage.set('userinfo', JSON.stringify( data.userinfo ) );
-                        console.log('Signed in: ', data);
-                        auth.oAuthAuthorize();
-                        resolve(data);
-                    })
-                    .error(function(data, status, headers, config){
-                        console.log('Sign-in failed: ', data);
-                        reject(data);
-                    });
-            });
+            return $http(loginConfig)
+                .success(function(data, status, headers, config){
+                    LocalStorage.set('userinfo', JSON.stringify( data.userinfo ) );
+                    console.log('Signed in: ', data);
+                    return data;
+                })
+                .error(function(data, status, headers, config){
+                    console.log('Sign-in failed: ', data);
+                    return data;
+                });
 
         },
         samlLogin: function(){},
@@ -469,7 +462,7 @@ angular.module('engage', ['ui.router', 'ngMaterial'])
 
     // Simple login to Engage backend
     $scope.simpleLogin = function(){
-        AuthService.simpleLogin($scope.userName, $scope.password)
+        AuthService.simpleLogin($scope.username, $scope.password)
             .then(function(){});
     };
 })

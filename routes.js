@@ -111,7 +111,7 @@ module.exports = function(app){
 
     } else {
 
-      var name = req.body.name;
+      var name = req.body.username;
       var password = req.body.password;
 
       db.checkUser_(name, password)
