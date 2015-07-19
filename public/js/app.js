@@ -358,14 +358,20 @@ angular.module('engage', ['ui.router', 'ngMaterial'])
 
     $scope.navOptions = [
         {
-            label: 'Home',
+            label: 'Review Kanji',
             action: function(){
                 go('nav.home');
                 $mdSidenav('left').close();
             }
         },
         {
-            label: 'Post Idea',
+            label: 'Add Words',
+            action: function(){
+                $mdSidenav('left').close();
+            }
+        },
+        {
+            label: 'Settings',
             action: function(){
                 $mdSidenav('left').close();
             }
@@ -381,18 +387,6 @@ angular.module('engage', ['ui.router', 'ngMaterial'])
             label: 'My Profile',
             action: function(){
                 go('nav.profile'); 
-                $mdSidenav('left').close();
-            }
-        },
-        {
-            label: 'Communities',
-            action: function(){
-                $mdSidenav('left').close();
-            }
-        },
-        {
-            label: 'About',
-            action: function(){
                 $mdSidenav('left').close();
             }
         },
