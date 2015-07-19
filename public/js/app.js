@@ -44,10 +44,6 @@ angular.module('engage', ['ui.router', 'ngMaterial'])
     $urlRouterProvider.otherwise('/home');
 })
 .run(function($rootScope, $location, LocalStorage, AuthService){
-    LocalStorage.set('BASE_URL', 'https://www.devtrunk.spigit.com'); // TODO: make this settable from login page
-    LocalStorage.set('CLIENT_ID', '1yVHkoF75ZDL'); 
-    LocalStorage.set('CLIENT_SECRET', '');  //TODO: Inlcuding secret here would be insecure...How to specify secret when refreshing via user agent flow?
-
     // Listener that checks on each state change whether or not we have an auth token. If we don't, redirect to /login.
     $rootScope.$on('$stateChangeStart', function(event, toState, toParams, fromState, fromParams){ 
         var isLoggedIn = AuthService.validate();
@@ -118,74 +114,10 @@ angular.module('engage', ['ui.router', 'ngMaterial'])
                 });
 
         },
-        samlLogin: function(){},
-        oAuthAuthorize: function(){
-
-            return $q(function(resolve, reject){
-
-                var authorizeURL =  LocalStorage.get('BASE_URL') + 
-                                    '/oauth/authorize?response_type=token&client_id=' + 
-                                    LocalStorage.get('CLIENT_ID') + 
-                                    '&redirect_uri=' + 
-                                    LocalStorage.get('BASE_URL') + 
-                                    '/html/api/oauthRedirect.html';
-
-                var dimensions = 'top=100,left=100,width=400,height=400';
-                var popup = $window.open(authorizeURL, '', dimensions);
-
-                popup.onload = function(e){
-                    var hash = popup.location.hash.slice(1);
-                    var params = hash.split('&');
-                    var oAuth = {};
-                    popup.close();
-                    angular.forEach(params, function(param){
-                        var parts = param.split('=');
-                        oAuth[parts[0]] = parts[1];
-                    });
-                    LocalStorage.set('oAuth', JSON.stringify( parseResponse(oAuth) ) );
-                    resolve(oAuth);
-                    $state.go('nav.home');
-                };
-
-            });
-
-        },
-        oAuthRefreshToken: function(){
-
-            var oAuth = JSON.parse( LocalStorage.get('oAuth') );
-
-            var refreshConfig = {
-                method: 'POST',
-                url: LocalStorage.get('BASE_URL') + '/oauth/token',
-                params: {
-                    grant_type: 'refresh_token',
-                    refresh_token: oAuth.refresh_token,
-                    client_id: LocalStorage.get('CLIENT_ID'),
-                    client_secret: LocalStorage.get('CLIENT_SECRET')
-                },
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded'
-                },
-                data: {} // Without this property, Angular will strip the 'Content-Type' header above (see Angular v1.3.9 source line 9317)
-            };
-
-            return $q(function(resolve, reject){
-                $http(refreshConfig)
-                    .success(function(data){
-                        oAuth.access_token = data.access_token;
-                        LocalStorage.set( 'oAuth', JSON.stringify( parseResponse(oAuth) ) );
-                        resolve(oAuth);
-                    })
-                    .error(function(data){
-                        reject(data);
-                    });
-            });
-
-        },
         validate: function(){ // If at any time we don't have an access_token on a state change, redirect to /login
-            var oAuth = LocalStorage.get('oAuth');
-            var hasToken = oAuth && JSON.parse(oAuth).access_token;
-            if (hasToken) {
+            var session = LocalStorage.get('userinfo');
+            var hasSession = session && JSON.parse(session).id;
+            if (hasSession) {
                 console.log('Logged in.');
                 return true;
             } else {
@@ -194,7 +126,6 @@ angular.module('engage', ['ui.router', 'ngMaterial'])
             }
         },
         logout: function(){
-            LocalStorage.remove('oAuth');
             LocalStorage.remove('userinfo');
             console.log('Logged out.');
             $location.path('/login');
