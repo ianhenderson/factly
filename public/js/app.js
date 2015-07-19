@@ -162,7 +162,13 @@ angular.module('engage', ['ui.router', 'ngMaterial'])
                 fact: word
             }
         };
-        return $http(config);
+        return $http(config)
+            .then(function(response){
+                return response.data;
+            })
+            .catch(function(response){
+                return response.data;
+            });
 
     }
 
@@ -253,13 +259,18 @@ angular.module('engage', ['ui.router', 'ngMaterial'])
     };
 
 })
-.controller('AddWordsCtrl', function($scope, K){
+.controller('AddWordsCtrl', function($scope, $mdToast, K){
 
     $scope.addWord = function(){
         var word = $scope.word;
         K.addWord(word)
         .then(function(data){
-            $scope.type = data;
+            $scope.word = '';
+            $mdToast.show(
+                $mdToast.simple()
+                .content(data)
+                .position('top right')
+            );
         });
     };
 
