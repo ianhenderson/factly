@@ -104,7 +104,7 @@ angular.module('engage', ['ui.router', 'ngMaterial'])
 
             return $http(loginConfig)
                 .success(function(data, status, headers, config){
-                    LocalStorage.set('userinfo', JSON.stringify( data.userinfo ) );
+                    LocalStorage.set('userinfo', JSON.stringify( data ) );
                     console.log('Signed in: ', data);
                     return data;
                 })
