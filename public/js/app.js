@@ -115,7 +115,7 @@ angular.module('engage', ['ui.router', 'ngMaterial'])
                 });
 
         },
-        validate: function(){ // If at any time we don't have an access_token on a state change, redirect to /login
+        validate: function(){ // If at any time we don't have a session on a state change, redirect to /login
             var session = LocalStorage.get('userinfo');
             var hasSession = session && JSON.parse(session).id;
             if (hasSession) {
