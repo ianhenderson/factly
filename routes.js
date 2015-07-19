@@ -1,31 +1,7 @@
-var db = require('./db.js');
+var db = require('./db.js')();
 var Promise = require('bluebird');
 
 module.exports = function(app){
-
-  // Check for session
-  // function checkSession(req, res, next){
-  //   var c = req.cookies;
-  //   if (c && c.session && c.session.id) {
-  //     next();
-  //   } else {
-  //     res.status(403).send("User not authorized.");
-  //   }
-  // }
-  app.all('/api/*', function(req, res, next){
-
-    var c = req.cookies;
-    var isLoginUrl = RegExp('/api/login').test(req.url);
-    var isLogoutUrl = RegExp('/api/logout').test(req.url);
-    if (isLoginUrl || isLogoutUrl) {
-      next();
-    } else if (c && c.session && c.session.id) {
-      next();
-    } else {
-      res.status(403).send("User not authorized.");
-    }
-
-  });
 
   // Get kanji
   app.get('/api/kanji', function(req, res){
@@ -33,15 +9,17 @@ module.exports = function(app){
     var c = req.cookies;
     var id = c.session.id;
 
-    db.getNextFromQueue(id, function(kanji){
+    // db.getNextFromQueue(id, function(kanji){
+    db.getNextFromQueue_(id)
+      .then(function(kanji){
 
-      if (kanji) {
-        res.status(200).send(kanji);
-      } else {
-        res.status(404).send("Nothing more to study.");
-      }
+        if (kanji) {
+          res.status(200).send(kanji);
+        } else {
+          res.status(404).send("Nothing more to study.");
+        }
 
-    });
+      });
 
   });
 
@@ -51,11 +29,12 @@ module.exports = function(app){
     var c = req.cookies;
     var id = c.session.id;
 
-    db.getFacts(id, function(rows){
+    db.getFacts_(id)
+      .then(function(rows){
 
-      res.status(200).send(rows);
+        res.status(200).send(rows);
 
-    });
+      });
 
   });
 
@@ -74,7 +53,7 @@ module.exports = function(app){
       var fact = req.body.fact;
 
       // db.addFact(id, fact);
-      db.addWord(id, fact);
+      db.addWord_(id, fact);
 
       res.status(201).send(["Success! Fact added to ", name, "'s collection: ", fact].join(''));
     }
@@ -93,21 +72,25 @@ module.exports = function(app){
       var name = req.body.name;
       var password = req.body.password;
 
-      db.checkUser(name, password, function(session){
+      db.checkUser_(name, password)
+        .then(function(user){
 
-        if (session){
+          if (user.exists){
 
-          res.status(409).send("User already in database.");
+            res.status(409).send("User already in database.");
 
-        } else {
+          } else {
 
-          db.addNewUser(name, password);
+            db.addNewUser_(name, password)
+              .then(function(user){
 
-          res.status(201).send(["Success! New user added: ", name].join(''));
+                res.status(201).send(user);
+                
+              });
 
-        }
+          }
 
-      });
+        });
 
     }
 
@@ -131,12 +114,13 @@ module.exports = function(app){
       var name = req.body.name;
       var password = req.body.password;
 
-      db.checkUser(name, password, function(session){
+      db.checkUser_(name, password)
+      .then(function(session){
 
-        if (session){
+        if (session.data){
 
-          res.cookie('session', session);
-          res.status(200).send(session);
+          res.cookie('session', session.data);
+          res.status(200).send(session.data);
 
         } else {
 
@@ -155,7 +139,7 @@ module.exports = function(app){
     res.status(200).send('User signed out.');
   });
 
-  app.get('/*', function(req,res){
+  app.get('/', function(req,res){
 
     res.sendFile('public/index.html');
 
