@@ -53,8 +53,11 @@ angular.module('engage', ['ui.router', 'ngMaterial'])
             return;
         }
 
-        // If trying to go to /login (while logged in already), or coming from /login (just finished AuthService.oAuthAuthorize), go /home
-        if (toState.name === 'login' || fromState.name === 'login') {
+        // If trying to go to /login (while logged in already), 
+        // or coming from /login (just finished AuthService.oAuthAuthorize), 
+        // or navigating to the base URL (awesome.com/)
+        // go /home
+        if (toState.name === 'login' || fromState.name === 'login' || !toState.url) {
             $location.path('/home');
         }
     });
@@ -106,7 +109,8 @@ angular.module('engage', ['ui.router', 'ngMaterial'])
                 .then(function(response){
                     LocalStorage.set('userinfo', JSON.stringify( response.data ) );
                     console.log('Signed in: ', response.data);
-                    $state.go('nav.home');
+                    // $state.go('nav.home');
+                    $location.path('/home');
                     return response.data;
                 })
                 .catch(function(response){
