@@ -103,14 +103,15 @@ angular.module('engage', ['ui.router', 'ngMaterial'])
             };
 
             return $http(loginConfig)
-                .success(function(data, status, headers, config){
-                    LocalStorage.set('userinfo', JSON.stringify( data ) );
-                    console.log('Signed in: ', data);
-                    return data;
+                .then(function(response){
+                    LocalStorage.set('userinfo', JSON.stringify( response.data ) );
+                    console.log('Signed in: ', response.data);
+                    $state.go('nav.home');
+                    return response.data;
                 })
-                .error(function(data, status, headers, config){
-                    console.log('Sign-in failed: ', data);
-                    return data;
+                .catch(function(response){
+                    console.log('Sign-in failed: ', response.data);
+                    return response.data;
                 });
 
         },
@@ -126,9 +127,24 @@ angular.module('engage', ['ui.router', 'ngMaterial'])
             }
         },
         logout: function(){
-            LocalStorage.remove('userinfo');
-            console.log('Logged out.');
-            $location.path('/login');
+
+            var logoutConfig = {
+                method: 'POST',
+                url: '/api/logout'
+            };
+
+            return $http(logoutConfig)
+                .then(function(response){
+                    console.log('Logged out.');
+                    LocalStorage.remove('userinfo');
+                    $location.path('/login');
+                    return response.data;
+                })
+                .catch(function(response){
+                    console.log('Error logging out: ', response);
+                    return response.data;
+                });
+
         },
     };
 })
@@ -314,17 +330,9 @@ angular.module('engage', ['ui.router', 'ngMaterial'])
 ///////////////////// Controllers /////////////////////
 
 .controller('LoginCtrl', function($scope, AuthService){
-    $scope.login = function(){
-        AuthService.oAuthAuthorize()
-            .then(function(oAuth){
-                console.log('Successfully logged in: ', oAuth);
-            });
-    };
 
-    // Simple login to Engage backend
     $scope.simpleLogin = function(){
-        AuthService.simpleLogin($scope.username, $scope.password)
-            .then(function(){});
+        AuthService.simpleLogin($scope.username, $scope.password);
     };
 })
 .controller('NavCtrl', function($scope, $state, $mdSidenav, AuthService){
