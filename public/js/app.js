@@ -20,10 +20,10 @@ angular.module('engage', ['ui.router', 'ngMaterial'])
             templateUrl: 'partials/home.html',
             controller: 'HomeCtrl'
         })
-        .state('nav.ideas', {
-            url: '^/ideas',
-            templateUrl: 'partials/ideas.html',
-            controller: 'IdeasCtrl'
+        .state('nav.addwords', {
+            url: '^/addwords',
+            templateUrl: 'partials/add-words.html',
+            controller: 'AddWordsCtrl'
         })
         .state('nav.idea', {
             url: '^/ideas/:id',
@@ -157,7 +157,7 @@ angular.module('engage', ['ui.router', 'ngMaterial'])
     function addWord(word){
         var config = {
             method: 'POST',
-            url: '/api/words',
+            url: '/api/facts',
             data: {
                 fact: word
             }
@@ -224,6 +224,7 @@ angular.module('engage', ['ui.router', 'ngMaterial'])
         {
             label: 'Add Words',
             action: function(){
+                go('nav.addwords');
                 $mdSidenav('left').close();
             }
         },
@@ -246,6 +247,17 @@ angular.module('engage', ['ui.router', 'ngMaterial'])
 
     $scope.getNextChar = function(){
         K.getNextChar()
+        .then(function(data){
+            $scope.type = data;
+        });
+    };
+
+})
+.controller('AddWordsCtrl', function($scope, K){
+
+    $scope.addWord = function(){
+        var word = $scope.word;
+        K.addWord(word)
         .then(function(data){
             $scope.type = data;
         });
