@@ -1,0 +1,45 @@
+<div id="profile">
+    <md-tabs md-border-bottom md-no-ink md-stretch-tabs="never" md-selected="activeTab" md-swipe-left="nextTab()" md-swipe-right="prevTab()">
+
+        <md-tab label="Profile">
+            <pre>{{::profile.data.info | json}}</pre>
+        </md-tab>
+
+        <md-tab label="Ideas">
+            <md-list>
+                <md-items ng-repeat="item in profile.data.userIdeas">
+                    <md-item-content ng-click="go(item.id)">
+                        <div class="md-tile-left">
+                            <img class="pic" alt="{{::item.creator.name}}" ng-src="{{::item.siteUrl + item.ideaImagePath}}">
+                        </div>
+                        <div class="md-tile-content">
+                            <h3>{{::item.title}}</h3>
+                            <h4>{{::item.creatorName}}</h4>
+                            <p>{{::item.created | date:'medium'}}</p>
+                        </div>
+                    </md-item-content>
+                    <md-divider></md-divider>
+                </md-items>
+            </md-list>
+        </md-tab>
+
+        <md-tab label="Recent Activities">
+            <md-list>
+                <md-items ng-repeat="item in profile.data.recentActivities">
+                    <md-item-content ng-click="go(item.id)">
+                        <div class="md-tile-left">
+                            <img class="pic" alt="{{::item.creator.name}}" ng-src="{{::item.siteUrl + item.ideaImagePath}}">
+                        </div>
+                        <div class="md-tile-content">
+                            <h3>{{::item.title}}</h3>
+                            <h4>{{::item.author}}</h4>
+                            <p>{{::item.editDate | date:'medium'}}</p>
+                        </div>
+                    </md-item-content>
+                    <md-divider></md-divider>
+                </md-items>
+            </md-list>
+        </md-tab>
+
+    </md-tabs>
+</div>
