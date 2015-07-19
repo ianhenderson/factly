@@ -1,4 +1,4 @@
-angular.module('engage', ['ui.router', 'ngResource', 'ngMaterial'])
+angular.module('engage', ['ui.router', 'ngMaterial'])
 
 ///////////////////// Setup & Config /////////////////////
 
@@ -152,9 +152,40 @@ angular.module('engage', ['ui.router', 'ngResource', 'ngMaterial'])
         },
     };
 })
-.factory('K', function($resource, LocalStorage){
+.factory('K', function($http, $q, LocalStorage){
 
-    return $resource();
+    function addWord(word){
+        var config = {
+            method: 'POST',
+            url: '/api/words',
+            data: {
+                fact: word
+            }
+        };
+        return $http(config);
+
+    }
+
+    function getNextChar(){
+        var config = {
+            method: 'GET',
+            url: '/api/kanji'
+        };
+        return $http(config)
+            .then(function(response){
+                return response.data;
+            })
+            .catch(function(response){
+                return response.data;
+            });
+    }
+
+
+    // Public methods to be used elsewhere in the app.
+    return K = {
+        addWord: addWord,
+        getNextChar: getNextChar
+    };
 })
 
 ///////////////////// Controllers /////////////////////
@@ -212,5 +243,12 @@ angular.module('engage', ['ui.router', 'ngResource', 'ngMaterial'])
     ];
 })
 .controller('HomeCtrl', function($scope, K){
+
+    $scope.getNextChar = function(){
+        K.getNextChar()
+        .then(function(data){
+            $scope.type = data;
+        });
+    };
 
 });
