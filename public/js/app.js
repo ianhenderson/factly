@@ -4,6 +4,23 @@ angular.module('engage', ['ui.router', 'ngMaterial'])
 
 .config(function($stateProvider, $urlRouterProvider, $httpProvider){
 
+    // Interceptor to redirect to /login upon errors due to no session
+    $httpProvider.interceptors.push(function($q, $injector, LocalStorage){
+
+        return {
+            'responseError': function(rejection){
+
+                // If we get a 403 error, we're assuming that it means there is no session
+                if (rejection.status === 403){
+                    $injector.invoke(function($location){
+                        $location.path('/login');
+                    });
+                }
+
+                return rejection;
+            }
+       }; 
+    });
     $stateProvider
         .state('login', {
             url: '/login',
