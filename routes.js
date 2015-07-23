@@ -101,7 +101,7 @@ module.exports = function(app){
 
     var c = req.cookies;
     if (c && c.session && c.session.id) {
-      res.status(400).send('Already logged in as ' + c.session.name);
+      res.status(200).send('Already logged in as ' + c.session.name);
       return;
     }
 
@@ -119,7 +119,7 @@ module.exports = function(app){
 
         if (session.data){
 
-          res.cookie('session', session.data);
+          res.cookie('session', session.data, {httpOnly: true});
           res.status(200).send(session.data);
 
         } else {
