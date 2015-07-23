@@ -17,7 +17,7 @@ angular.module('engage', ['ui.router', 'ngMaterial'])
                     });
                 }
 
-                return rejection;
+                return $q.reject(rejection);
             }
        }; 
     });
@@ -66,7 +66,7 @@ angular.module('engage', ['ui.router', 'ngMaterial'])
         var isLoggedIn = AuthService.validate();
 
         if (!isLoggedIn) {
-            $location.path('/login');
+            AuthService.logout();
             return;
         }
 
@@ -126,7 +126,6 @@ angular.module('engage', ['ui.router', 'ngMaterial'])
                 .then(function(response){
                     LocalStorage.set('userinfo', JSON.stringify( response.data ) );
                     console.log('Signed in: ', response.data);
-                    // $state.go('nav.home');
                     $location.path('/home');
                     return response.data;
                 })
