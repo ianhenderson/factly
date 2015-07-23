@@ -135,6 +135,28 @@ angular.module('engage', ['ui.router', 'ngMaterial'])
                 });
 
         },
+        signUp: function(username, password){
+            var loginConfig = {
+                method: 'POST',
+                url: '/api/signup',
+                data: {
+                    username: username,
+                    password: password
+                }
+            };
+
+            return $http(loginConfig)
+                .then(function(response){
+                    LocalStorage.set('userinfo', JSON.stringify( response.data ) );
+                    console.log(response.data);
+                    return response.data;
+                })
+                .catch(function(response){
+                    console.log(response.data);
+                    return response.data;
+                });
+
+        },
         validate: function(){ // If at any time we don't have a session on a state change, redirect to /login
             var session = LocalStorage.get('userinfo');
             var hasSession = session && JSON.parse(session).id;
@@ -214,8 +236,26 @@ angular.module('engage', ['ui.router', 'ngMaterial'])
 
 .controller('LoginCtrl', function($scope, AuthService){
 
-    $scope.simpleLogin = function(){
-        AuthService.simpleLogin($scope.username, $scope.password);
+    $scope.select = function(label){
+        $scope.tabs.forEach(function(tab){
+            tab.selected = (tab.title === label) ? true : false;
+        });
+    };
+
+    $scope.tabs = [
+        {
+            title: 'Sign-in',
+            action: AuthService.simpleLogin
+        },
+        {
+            title: 'New User',
+            action: AuthService.signUp
+        }
+    ];
+
+    $scope.submit = function(){
+        var selectedTab = $scope.tabs.filter(function(tab){ return tab.selected === true; }).pop();
+        selectedTab.action($scope.username, $scope.password);
     };
 })
 .controller('NavCtrl', function($scope, $state, $mdSidenav, AuthService){

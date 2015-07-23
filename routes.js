@@ -61,18 +61,18 @@ module.exports = function(app){
   });
 
   // Add new user & password to database
-  app.post('/api/adduser', function(req,res){
+  app.post('/api/signup', function(req,res){
 
-    if (!req.body.name || !req.body.password){
+    if (!req.body.username || !req.body.password){
 
-      res.status(400).send("Error: POST must include a name and password.");
+      res.status(400).send("Error: POST must include a username and password.");
 
     } else {
 
-      var name = req.body.name;
+      var username = req.body.username;
       var password = req.body.password;
 
-      db.checkUser_(name, password)
+      db.checkUser_(username, password)
         .then(function(user){
 
           if (user.exists){
@@ -81,7 +81,7 @@ module.exports = function(app){
 
           } else {
 
-            db.addNewUser_(name, password)
+            db.addNewUser_(username, password)
               .then(function(user){
 
                 res.status(201).send(user);
