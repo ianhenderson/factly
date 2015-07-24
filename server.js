@@ -5,6 +5,7 @@ var checkSession = require('./server/checkSession');
 var app = express();
 var port = process.env.PORT || 3000;
 
+require('./server/build')();
 
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(bodyParser.json());

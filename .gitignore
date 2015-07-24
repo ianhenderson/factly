@@ -28,5 +28,8 @@ node_modules
 # Bower components
 public/lib/*
 
+# Generated JS/CSS
+public/dist
+
 # SQLite DB file
 *.db

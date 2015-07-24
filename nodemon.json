@@ -1,0 +1,3 @@
+{
+  "ignore": ["public/dist", "node_modules", "public/lib"]
+}
