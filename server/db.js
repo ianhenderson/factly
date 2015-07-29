@@ -7,12 +7,22 @@ module.exports = function(config){
   config = config || {};
   var file = config.file || 'test.db';
   var db = new sqlite3.Database(file);
+  var debug = config.debug || false;
   initDatabase(file);
-  // var exists = fs.existsSync(file);
 
-  // if (!exists){
-  //   initDatabase(file);
-  // }
+  // For debugging:
+  if (debug) {
+
+    db.on('trace', function(query){
+      console.log('TRACE: ', query);
+
+    });
+
+    db.on('profile', function(query, time){
+      console.log('PROFILE: ', time, ':::',query);
+    });
+
+  }
 
   function initDatabase(name){
 
