@@ -59,7 +59,7 @@ gulp.task('default', function() {
       .pipe(concat('main.js'))
       .pipe(gulp.dest('public/dist/'));
 
-  gulp.src(source.js.vendor[env])
+  gulp.src(source.css.vendor[env])
       .pipe(concat('vendor.css'))
       .pipe(gulp.dest('public/dist/'));
 
