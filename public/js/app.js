@@ -1,4 +1,4 @@
-angular.module('engage', ['ui.router', 'ngMaterial'])
+angular.module('KSTool', ['ui.router', 'ngMaterial'])
 
 ///////////////////// Setup & Config /////////////////////
 
