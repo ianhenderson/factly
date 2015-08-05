@@ -1,5 +1,8 @@
 var gulp = require('gulp');
+var gulpIf = require('gulp-if');
 var concat = require('gulp-concat');
+var uglify = require('gulp-uglify');
+var ngAnnotate = require('gulp-ng-annotate');
 var env = process.env.NODE_ENV ? 'prod' : 'dev';
 
 
@@ -57,6 +60,8 @@ gulp.task('default', function() {
 
   gulp.src(source.js.src)
       .pipe(concat('main.js'))
+      .pipe(ngAnnotate())
+      .pipe(minifyIfProd())
       .pipe(gulp.dest('public/dist/'));
 
   gulp.src(source.css.vendor[env])
@@ -70,3 +75,7 @@ gulp.task('default', function() {
   console.log('Finished compiling files.');
 
 });
+
+function minifyIfProd(stream){
+  return gulpIf(env === 'prod', uglify());
+}

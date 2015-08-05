@@ -1,3 +1,4 @@
 {
-  "ignore": ["public/dist", "node_modules", "public/lib"]
+  "ignore": ["public/dist", "node_modules", "public/lib"],
+  "exec": "gulp; node server.js;"
 }
