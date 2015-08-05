@@ -231,6 +231,18 @@ angular.module('KSTool', ['ui.router', 'ngMaterial'])
         getNextChar: getNextChar
     };
 })
+.factory('Toast', function($mdToast){
+
+    function showToast(message){
+        $mdToast.show(
+            $mdToast.simple()
+            .content(message)
+            .position('bottom')
+        );
+    }
+
+    return showToast;
+})
 
 ///////////////////// Controllers /////////////////////
 
@@ -315,18 +327,14 @@ angular.module('KSTool', ['ui.router', 'ngMaterial'])
     };
 
 })
-.controller('AddWordsCtrl', function($scope, $mdToast, K){
+.controller('AddWordsCtrl', function($scope, Toast, K){
 
     $scope.addWord = function(){
         var word = $scope.word;
         K.addWord(word)
         .then(function(data){
             $scope.word = '';
-            $mdToast.show(
-                $mdToast.simple()
-                .content(data)
-                .position('top right')
-            );
+            Toast(data);
         });
     };
 
