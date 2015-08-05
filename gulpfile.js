@@ -60,7 +60,7 @@ gulp.task('default', function() {
 
   gulp.src(source.js.src)
       .pipe(concat('main.js'))
-      .pipe(ngAnnotate())
+      .pipe(annotateIfProd())
       .pipe(minifyIfProd())
       .pipe(gulp.dest('public/dist/'));
 
@@ -78,4 +78,8 @@ gulp.task('default', function() {
 
 function minifyIfProd(stream){
   return gulpIf(env === 'prod', uglify());
+}
+
+function annotateIfProd(stream){
+  return gulpIf(env === 'prod', ngAnnotate());
 }
