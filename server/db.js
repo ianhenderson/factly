@@ -36,7 +36,7 @@ module.exports = function(config){
     // Tables of all unique kanji, words and a junction table
     db.run('CREATE TABLE kanji (id INTEGER PRIMARY KEY, kanji TEXT UNIQUE)');
     db.run('CREATE TABLE words (id INTEGER PRIMARY KEY, word TEXT UNIQUE)');
-    db.run('CREATE TABLE kanji_words (kanji_id INTEGER, word_id INTEGER, FOREIGN KEY(kanji_id) REFERENCES kanji(id), FOREIGN KEY(word_id) REFERENCES words(id))');
+    db.run('CREATE TABLE kanji_words (kanji_id INTEGER, word_id INTEGER, FOREIGN KEY(kanji_id) REFERENCES kanji(id), FOREIGN KEY(word_id) REFERENCES words(id), CONSTRAINT unq UNIQUE (kanji_id, word_id))');
 
     // Tables of seen words/kanji on a per-user basis
     db.run('CREATE TABLE seen_words (user_id INTEGER, word_id INTEGER, FOREIGN KEY(user_id) REFERENCES users(id), FOREIGN KEY(word_id) REFERENCES words(id))');
@@ -156,7 +156,7 @@ module.exports = function(config){
 
                   // 2) Add relationship to kanji_words junction table.
                   // 3) Add to seen tables for current user_id
-                  db.run('INSERT INTO kanji_words (kanji_id, word_id) VALUES (?, ?)', kanji_id, word_id)
+                  db.run('INSERT OR IGNORE INTO kanji_words (kanji_id, word_id) VALUES (?, ?)', kanji_id, word_id)
                     .run('INSERT INTO seen_words (user_id, word_id) VALUES (?, ?)', userId, word_id)
                     .run('INSERT INTO seen_kanji (user_id, kanji_id) VALUES (?, ?)', userId, kanji_id);
                   resolve(true);
