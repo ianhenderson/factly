@@ -125,13 +125,11 @@ angular.module('KSTool', ['ui.router', 'ngMaterial'])
             return $http(loginConfig)
                 .then(function(response){
                     LocalStorage.set('userinfo', JSON.stringify( response.data ) );
-                    console.log('Signed in: ', response.data);
                     $location.path('/home');
                     return response.data;
                 })
                 .catch(function(response){
-                    console.log('Sign-in failed: ', response.data);
-                    return response.data;
+                    throw response.data;
                 });
 
         },
@@ -148,14 +146,21 @@ angular.module('KSTool', ['ui.router', 'ngMaterial'])
             return $http(loginConfig)
                 .then(function(response){
                     LocalStorage.set('userinfo', JSON.stringify( response.data ) );
-                    console.log(response.data);
                     return response.data;
                 })
                 .catch(function(response){
-                    console.log(response.data);
-                    return response.data;
+                    throw response.data;
                 });
 
+        },
+        signupAndLogin: function(username, password){
+            return auth.signUp(username, password)
+                .then(function(response){
+                    return auth.simpleLogin(username, password);
+                })
+                .catch(function(response){
+                    throw response;
+                });
         },
         validate: function(){ // If at any time we don't have a session on a state change, redirect to /login
             var session = LocalStorage.get('userinfo');
@@ -246,7 +251,7 @@ angular.module('KSTool', ['ui.router', 'ngMaterial'])
 
 ///////////////////// Controllers /////////////////////
 
-.controller('LoginCtrl', function($scope, AuthService){
+.controller('LoginCtrl', function($scope, AuthService, Toast){
 
     $scope.select = function(label){
         $scope.tabs.forEach(function(tab){
@@ -261,23 +266,22 @@ angular.module('KSTool', ['ui.router', 'ngMaterial'])
         },
         {
             title: 'New User',
-            action: AuthService.signUp
+            action: AuthService.signupAndLogin
         }
     ];
 
     $scope.submit = function(){
         var selectedTab = $scope.tabs.filter(function(tab){ return tab.selected === true; }).pop();
-        selectedTab.action($scope.username, $scope.password);
+        selectedTab.action($scope.username, $scope.password)
+            .then(function(response){
+                console.log('Success: ', response);
+            })
+            .catch(function(response){
+                Toast(response);
+            });
     };
 })
 .controller('NavCtrl', function($scope, $state, $mdSidenav, AuthService){
-    function logout(){
-        AuthService.logout();
-    }
-
-    function go(state){
-        $state.go(state);
-    }
 
     $scope.openLeftMenu = function(){
         $mdSidenav('left').toggle();
