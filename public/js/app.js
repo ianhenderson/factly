@@ -28,7 +28,7 @@ angular.module('KSTool', ['ui.router', 'ngMaterial'])
             controller: 'LoginCtrl'
         })
         .state('nav', { // Just a container with the nav bar & headers
-            url: '',
+            abstract: true,
             templateUrl: 'partials/nav.html',
             controller: 'NavCtrl'
         })
@@ -38,17 +38,17 @@ angular.module('KSTool', ['ui.router', 'ngMaterial'])
             controller: 'HomeCtrl'
         })
         .state('nav.addwords', {
-            url: '^/addwords',
+            url: '/addwords',
             templateUrl: 'partials/add-words.html',
             controller: 'AddWordsCtrl'
         })
         .state('nav.idea', {
-            url: '^/ideas/:id',
+            url: '/ideas/:id',
             templateUrl: 'partials/idea.html',
             controller: 'IdeaCtrl'
         })
         .state('nav.profile', {
-            url: '^/profile',
+            url: '/profile',
             templateUrl: 'partials/profile.html',
             controller: 'ProfileCtrl'
         })
@@ -291,14 +291,14 @@ angular.module('KSTool', ['ui.router', 'ngMaterial'])
         {
             label: 'Review Kanji',
             action: function(){
-                go('nav.home');
+                $state.go('nav.home');
                 $mdSidenav('left').close();
             }
         },
         {
             label: 'Add Words',
             action: function(){
-                go('nav.addwords');
+                $state.go('nav.addwords');
                 $mdSidenav('left').close();
             }
         },
@@ -311,7 +311,7 @@ angular.module('KSTool', ['ui.router', 'ngMaterial'])
         {
             label: 'Sign Out',
             action: function(){
-                logout();
+                AuthService.logout();
                 $mdSidenav('left').close();
             }
         },
