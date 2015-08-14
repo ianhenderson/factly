@@ -8,6 +8,7 @@ module.exports = function(config){
   var file = config.file || 'test.db';
   var db = new sqlite3.Database(file);
   var debug = config.debug || false;
+  var stmtCache;
   initDatabase(file);
 
   // For debugging:
@@ -24,26 +25,32 @@ module.exports = function(config){
 
   }
 
+
   function initDatabase(name){
 
-    if (fs.existsSync(name)) return;
+    if (fs.existsSync(name)) {
 
-    console.log('Creating DB file: ', name);
-    fs.openSync(name, 'w');
-    db.run('CREATE TABLE users (id INTEGER PRIMARY KEY, name VARCHAR(255) UNIQUE, password VARCHAR(255), salt VARCHAR(255))');
-    db.run('CREATE TABLE facts (user_id INTEGER, fact TEXT)');
-
-    // Tables of all unique kanji, words and a junction table
-    db.run('CREATE TABLE kanji (id INTEGER PRIMARY KEY, kanji TEXT UNIQUE)');
-    db.run('CREATE TABLE words (id INTEGER PRIMARY KEY, word TEXT UNIQUE)');
-    db.run('CREATE TABLE kanji_words (kanji_id INTEGER, word_id INTEGER, FOREIGN KEY(kanji_id) REFERENCES kanji(id), FOREIGN KEY(word_id) REFERENCES words(id), CONSTRAINT unq UNIQUE (kanji_id, word_id))');
-
-    // Tables of seen words/kanji on a per-user basis
-    db.run('CREATE TABLE seen_words (user_id INTEGER, word_id INTEGER, FOREIGN KEY(user_id) REFERENCES users(id), FOREIGN KEY(word_id) REFERENCES words(id))');
-    db.run('CREATE TABLE seen_kanji (user_id INTEGER, kanji_id INTEGER, FOREIGN KEY(user_id) REFERENCES users(id), FOREIGN KEY(kanji_id) REFERENCES kanji(id))');
-
-    // Queue of items to study for each user
-    db.run('CREATE TABLE study_queue (user_id INTEGER, queue TEXT, FOREIGN KEY(user_id) REFERENCES users(id))');
+      console.log('Creating DB file: ', name);
+      fs.openSync(name, 'w');
+      db.run('CREATE TABLE users (id INTEGER PRIMARY KEY, name VARCHAR(255) UNIQUE, password VARCHAR(255), salt VARCHAR(255))')
+        // Tables of all unique kanji, words and a junction table
+        .run('CREATE TABLE kanji (id INTEGER PRIMARY KEY, kanji TEXT UNIQUE)')
+        .run('CREATE TABLE words (id INTEGER PRIMARY KEY, word TEXT UNIQUE)')
+        .run('CREATE TABLE kanji_words (kanji TEXT, word_id INTEGER, FOREIGN KEY(kanji) REFERENCES kanji(kanji), FOREIGN KEY(word_id) REFERENCES words(id), CONSTRAINT unq UNIQUE (kanji, word_id))')
+        // Tables of seen words/kanji on a per-user basis
+        .run('CREATE TABLE seen_words (user_id INTEGER, word_id INTEGER, FOREIGN KEY(user_id) REFERENCES users(id), FOREIGN KEY(word_id) REFERENCES words(id))')
+        .run('CREATE TABLE seen_kanji (user_id INTEGER, kanji TEXT, FOREIGN KEY(user_id) REFERENCES users(id), FOREIGN KEY(kanji) REFERENCES kanji(kanji))')
+        // Queue of items to study for each user
+        .run('CREATE TABLE study_queue (user_id INTEGER, queue TEXT, FOREIGN KEY(user_id) REFERENCES users(id))', function(err){
+          // Prepare statements. (must be done AFTER tables have been created else throws error)
+          stmtCache = {
+            addKanji: db.prepare('INSERT OR IGNORE INTO kanji (kanji) VALUES (?)'),
+            addKanjiWords: db.prepare('INSERT OR IGNORE INTO kanji_words (kanji, word_id) VALUES (?, ?)'),
+            addSeenWords: db.prepare('INSERT INTO seen_words (user_id, word_id) VALUES (?, ?)'),
+            addSeenKanji: db.prepare('INSERT INTO seen_kanji (user_id, kanji) VALUES (?, ?)')
+          };
+        });
+    }
   }
 
   function handleError(e) {
