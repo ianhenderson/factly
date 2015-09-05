@@ -10,45 +10,42 @@ var env = process.env.NODE_ENV ? 'prod' : 'dev';
 // Source Files //
 //////////////////
 
-var source = {};
-source.js = {};
-source.js.vendor = {};
-source.js.src = {};
-source.css = {};
-source.css.vendor = {};
-source.css.src = {};
-
-source.js.vendor.dev = [
-  "public/lib/angular/angular.js",
-  "public/lib/ui-router/release/angular-ui-router.js",
-  "public/lib/angular-animate/angular-animate.js",
-  "public/lib/angular-aria/angular-aria.js",
-  "public/lib/angular-material/angular-material.js",
-];
-
-source.js.vendor.prod = [
-  "public/lib/angular/angular.min.js",
-  "public/lib/ui-router/release/angular-ui-router.min.js",
-  "public/lib/angular-animate/angular-animate.min.js",
-  "public/lib/angular-aria/angular-aria.min.js",
-  "public/lib/angular-material/angular-material.min.js",
-];
-
-source.css.vendor.dev= [
-  "public/lib/angular-material/angular-material.css",
-];
-
-source.css.vendor.prod= [
-  "public/lib/angular-material/angular-material.min.css",
-];
-
-source.js.src= [
-  "public/js/app.js",
-];
-
-source.css.src= [
-  "public/styles/style.css",
-];
+var source = {
+  js: {
+    src: [
+      "public/js/app.js",
+    ],
+    vendor: {
+      dev: [
+        "node_modules/angular/angular.js",
+        "node_modules/angular-ui-router/release/angular-ui-router.js",
+        "node_modules/angular-animate/angular-animate.js",
+        "node_modules/angular-aria/angular-aria.js",
+        "node_modules/angular-material/angular-material.js",
+      ],
+      prod: [
+        "node_modules/angular/angular.min.js",
+        "node_modules/angular-ui-router/release/angular-ui-router.min.js",
+        "node_modules/angular-animate/angular-animate.min.js",
+        "node_modules/angular-aria/angular-aria.min.js",
+        "node_modules/angular-material/angular-material.min.js",
+      ]
+    }
+  },
+  css: {
+    src: [
+      "public/styles/style.css",
+      ],
+    vendor: {
+      dev: [
+        "node_modules/angular-material/angular-material.css",
+      ],
+      prod: [
+        "node_modules/angular-material/angular-material.min.css",
+      ]
+    }
+  }
+};
 
 gulp.task('default', function() {
 
