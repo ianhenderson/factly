@@ -5,7 +5,8 @@
   "main": "server.js",
   "scripts": {
     "test": "mocha",
-    "postinstall": "gulp"
+    "build": "node ./build.js",
+    "postinstall": "npm run build"
   },
   "repository": {
     "type": "git",
@@ -33,6 +34,8 @@
     "gulp-if": "1.2.5",
     "gulp-ng-annotate": "1.1.0",
     "gulp-uglify": "1.2.0",
+    "ng-annotate": "1.0.2",
+    "shelljs": "^0.5.3",
     "sqlite3": "3.0.8",
     "uglify-js": "2.4.24"
   }
