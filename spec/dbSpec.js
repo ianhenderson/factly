@@ -19,7 +19,7 @@ describe("Database layer:", function() {
       pw: 'bob123',
     };
 
-    var db = require('../db.js')(config);
+    var db = require('../server/db.js')(config);
   // });
 
   // Teardown

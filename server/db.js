@@ -57,6 +57,46 @@ module.exports = function(config){
     console.error(e);
   }
 
+  function addKanjiToKanjiTable(kanjiArray){
+    return new Promise(function(resolve, reject){
+      var stmt;
+      db.serialize(function(){
+        stmtCache.addKanji.reset();
+        db.run('BEGIN TRANSACTION');
+        kanjiArray.forEach(function(char){
+          stmtCache.addKanji.run(char);
+        });
+        db.run('COMMIT');
+        stmtCache.addKanji.reset();
+        resolve(kanjiArray);
+      });
+    });
+  }
+
+  function addKanjiRelationsToOtherTables(userId, word_id, kanjiArray){
+    return new Promise(function(resolve, reject){
+      db.serialize(function(){
+        db.run('BEGIN TRANSACTION');
+
+        stmtCache.addKanjiWords.reset();
+        stmtCache.addSeenWords.reset();
+        stmtCache.addSeenKanji.reset();
+
+        kanjiArray.forEach(function(kanji){
+          stmtCache.addKanjiWords.run(kanji, word_id);
+          stmtCache.addSeenKanji.run(userId, kanji);
+        });
+        stmtCache.addSeenWords.run(userId, word_id);
+
+        stmtCache.addKanjiWords.reset();
+        stmtCache.addSeenWords.reset();
+        stmtCache.addSeenKanji.reset();
+
+        db.run('COMMIT');
+        resolve(kanjiArray);
+      });
+    });
+  }
 
 
   return fn = {
@@ -118,21 +158,30 @@ module.exports = function(config){
         });
     },
 
-    addFact_: function(id, fact){
-      return db.runAsync('INSERT INTO facts (user_id, fact) VALUES (?, ?)', id, fact)
-        .then(function(){
-          console.log(this);
-          return this;
-        })
-        .catch(function(e){
-          console.error(e);
-        });
-    },
+    addWord_2: function(userId, word){
+      // Add word to 'words' table.
+      return db.run('INSERT OR IGNORE INTO words (word) VALUES (?)', word)
+               .getAsync('SELECT id FROM words WHERE word = ?', word)
+        .then(function(row){
+          var word_id = row.id;
 
-    getFacts_: function(id){
-      return db.allAsync('SELECT fact FROM users, facts WHERE facts.user_id = users.id AND users.id = ?', id)
-        .then(function(rows){
-          return rows;
+          // Clean non-kanji chars out
+          word = fn.filterKanji(word);
+          var kanjiArray = word.split('');
+
+          // For each character in word...
+            // 1) Add kanji to 'kanji' table...
+            return addKanjiToKanjiTable(kanjiArray)
+              // 2) Add relationship to kanji_words junction table.
+              // 3) Add to seen tables for current user_id
+              .then(function(kanjiArray){
+                return addKanjiRelationsToOtherTables(userId, word_id, kanjiArray);
+              })
+              // 4) Add kanji to 'study_queue' table...
+              .then(function(kanjiArray){
+                return fn.enqueue(userId, kanjiArray);
+              });
+
         })
         .catch(handleError);
     },
@@ -183,33 +232,12 @@ module.exports = function(config){
         .catch(handleError);
     },
 
-    // Get next character to study, and related words
-    getNextChar: function(userId){
-      // db.run('SELECT kanji FROM kanji, study_queue WHERE kanii.kanji_id = study_queue.kanji_id AND study_queue.user_id = ?', userId);
-    },
-
-    getAllSeenKanji_: function(userId){
-      return db.getAsync('SELECT kanji FROM seen_kanji WHERE seen_kanji.user_id = ?', userId)
-        .then(function(row){
-          return row;
-        })
-        .catch(handleError);
-    },
-
-    getAllSeenWords_: function(userId){
-      return db.getAsync('SELECT words FROM seen_words WHERE seen_words.user_id = ?', userId)
-        .then(function(row){
-          return row;
-        })
-        .catch(handleError);
-    },
-
     // Add to queue
-    enqueue: function(userId, kanjiIds){
+    enqueue: function(userId, kanjiArray){
       return db.getAsync('SELECT queue FROM study_queue WHERE study_queue.user_id = ?', userId)
         .then(function(row){
           var q = row && JSON.parse(row.queue);
-          q = q ? q.concat(kanjiIds) : kanjiIds ;
+          q = q ? q.concat(kanjiArray) : kanjiArray ;
           var q_string = JSON.stringify(q);
           if (row){
             db.run('UPDATE study_queue SET queue = ? WHERE user_id = ?', q_string, userId);
@@ -243,11 +271,12 @@ module.exports = function(config){
           var first = q.shift();
           var q_string = JSON.stringify(q);
           db.run('UPDATE study_queue SET queue = ? WHERE user_id = ?', q_string, userId);
-          return db.getAsync('SELECT kanji FROM kanji WHERE id = ?', first)
-            .then(function(kanjiRow){
-              var nextKanji = kanjiRow.kanji;
-              return nextKanji;
-            });
+          return first;
+          // return db.getAsync('SELECT kanji FROM kanji WHERE id = ?', first)
+          //   .then(function(kanjiRow){
+          //     var nextKanji = kanjiRow.kanji;
+          //     return nextKanji;
+          //   });
         })
         .catch(handleError);
     },

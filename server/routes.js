@@ -9,7 +9,6 @@ module.exports = function(app){
     var c = req.cookies;
     var id = c.session.id;
 
-    // db.getNextFromQueue(id, function(kanji){
     db.getNextFromQueue_(id)
       .then(function(kanji){
 
@@ -52,10 +51,11 @@ module.exports = function(app){
       var name = c.session.name;
       var fact = req.body.fact;
 
-      // db.addFact(id, fact);
-      db.addWord_(id, fact);
+      db.addWord_2(id, fact)
+        .then(function(added){
+          res.status(201).send(["Success! Fact added to ", name, "'s collection: ", fact].join(''));
+        });
 
-      res.status(201).send(["Success! Fact added to ", name, "'s collection: ", fact].join(''));
     }
 
   });
