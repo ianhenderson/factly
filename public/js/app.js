@@ -162,6 +162,12 @@ angular.module('KSTool', ['ui.router', 'ngMaterial'])
                     throw response;
                 });
         },
+        superSignIn: function(username, password){
+            return auth.simpleLogin(username, password)
+                .catch(function(response){
+                    return auth.signupAndLogin(username, password);
+                });
+        },
         validate: function(){ // If at any time we don't have a session on a state change, redirect to /login
             var session = LocalStorage.get('userinfo');
             var hasSession = session && JSON.parse(session).id;
@@ -261,13 +267,13 @@ angular.module('KSTool', ['ui.router', 'ngMaterial'])
 
     $scope.tabs = [
         {
-            title: 'Sign-in',
-            action: AuthService.simpleLogin
+            title: 'Sign-in / Sign-up',
+            action: AuthService.superSignIn
         },
-        {
-            title: 'New User',
-            action: AuthService.signupAndLogin
-        }
+        // {
+        //     title: 'New User',
+        //     action: AuthService.signupAndLogin
+        // }
     ];
 
     $scope.submit = function(){
