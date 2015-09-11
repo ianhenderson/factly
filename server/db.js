@@ -9,7 +9,9 @@ module.exports = function(config){
   var db = new sqlite3.Database(file);
   var debug = config.debug || false;
   var stmtCache;
-  initDatabase(file);
+  
+  initDatabase(file)
+    .then(initStmtCache);
 
   // For debugging:
   if (debug) {
@@ -27,30 +29,40 @@ module.exports = function(config){
 
 
   function initDatabase(name){
+    return new Promise(function(resolve, reject){
+      if (fs.existsSync(name)) {
+        resolve(true);
+      } else {
+        console.log('Creating DB file: ', name);
+        fs.openSync(name, 'w');
+        db.run('CREATE TABLE users (id INTEGER PRIMARY KEY, name VARCHAR(255) UNIQUE, password VARCHAR(255), salt VARCHAR(255))')
+          // Tables of all unique kanji, words and a junction table
+          .run('CREATE TABLE kanji (id INTEGER PRIMARY KEY, kanji TEXT UNIQUE)')
+          .run('CREATE TABLE words (id INTEGER PRIMARY KEY, word TEXT UNIQUE)')
+          .run('CREATE TABLE kanji_words (kanji TEXT, word_id INTEGER, FOREIGN KEY(kanji) REFERENCES kanji(kanji), FOREIGN KEY(word_id) REFERENCES words(id), CONSTRAINT unq UNIQUE (kanji, word_id))')
+          // Tables of seen words/kanji on a per-user basis
+          .run('CREATE TABLE seen_words (user_id INTEGER, word_id INTEGER, FOREIGN KEY(user_id) REFERENCES users(id), FOREIGN KEY(word_id) REFERENCES words(id))')
+          .run('CREATE TABLE seen_kanji (user_id INTEGER, kanji TEXT, FOREIGN KEY(user_id) REFERENCES users(id), FOREIGN KEY(kanji) REFERENCES kanji(kanji))')
+          // Queue of items to study for each user
+          .run('CREATE TABLE study_queue (user_id INTEGER, queue TEXT, FOREIGN KEY(user_id) REFERENCES users(id))', function(err){
+            console.log(name, 'created.');
+            resolve(true);
+          });
+      }
+    });
+  }
 
-    if (fs.existsSync(name)) {
-
-      console.log('Creating DB file: ', name);
-      fs.openSync(name, 'w');
-      db.run('CREATE TABLE users (id INTEGER PRIMARY KEY, name VARCHAR(255) UNIQUE, password VARCHAR(255), salt VARCHAR(255))')
-        // Tables of all unique kanji, words and a junction table
-        .run('CREATE TABLE kanji (id INTEGER PRIMARY KEY, kanji TEXT UNIQUE)')
-        .run('CREATE TABLE words (id INTEGER PRIMARY KEY, word TEXT UNIQUE)')
-        .run('CREATE TABLE kanji_words (kanji TEXT, word_id INTEGER, FOREIGN KEY(kanji) REFERENCES kanji(kanji), FOREIGN KEY(word_id) REFERENCES words(id), CONSTRAINT unq UNIQUE (kanji, word_id))')
-        // Tables of seen words/kanji on a per-user basis
-        .run('CREATE TABLE seen_words (user_id INTEGER, word_id INTEGER, FOREIGN KEY(user_id) REFERENCES users(id), FOREIGN KEY(word_id) REFERENCES words(id))')
-        .run('CREATE TABLE seen_kanji (user_id INTEGER, kanji TEXT, FOREIGN KEY(user_id) REFERENCES users(id), FOREIGN KEY(kanji) REFERENCES kanji(kanji))')
-        // Queue of items to study for each user
-        .run('CREATE TABLE study_queue (user_id INTEGER, queue TEXT, FOREIGN KEY(user_id) REFERENCES users(id))', function(err){
-          // Prepare statements. (must be done AFTER tables have been created else throws error)
-          stmtCache = {
-            addKanji: db.prepare('INSERT OR IGNORE INTO kanji (kanji) VALUES (?)'),
-            addKanjiWords: db.prepare('INSERT OR IGNORE INTO kanji_words (kanji, word_id) VALUES (?, ?)'),
-            addSeenWords: db.prepare('INSERT INTO seen_words (user_id, word_id) VALUES (?, ?)'),
-            addSeenKanji: db.prepare('INSERT INTO seen_kanji (user_id, kanji) VALUES (?, ?)')
-          };
-        });
-    }
+  function initStmtCache(created){
+    // Prepare statements. (must be done AFTER tables have been created else throws error)
+    console.log('Preparing statements...');
+    stmtCache = {
+      addKanji: db.prepare('INSERT OR IGNORE INTO kanji (kanji) VALUES (?)'),
+      addKanjiWords: db.prepare('INSERT OR IGNORE INTO kanji_words (kanji, word_id) VALUES (?, ?)'),
+      addSeenWords: db.prepare('INSERT INTO seen_words (user_id, word_id) VALUES (?, ?)'),
+      addSeenKanji: db.prepare('INSERT INTO seen_kanji (user_id, kanji) VALUES (?, ?)')
+    };
+    console.log('Preparing statements finished.');
+    return;
   }
 
   function handleError(e) {
@@ -182,52 +194,6 @@ module.exports = function(config){
                 return fn.enqueue(userId, kanjiArray);
               });
 
-        })
-        .catch(handleError);
-    },
-
-    addWord_: function(userId, word){
-      var kanjiIds;
-      // Add word to 'words' table.
-      return db.run('INSERT OR IGNORE INTO words (word) VALUES (?)', word)
-               .getAsync('SELECT id FROM words WHERE word = ?', word)
-        .then(function(row){
-          var word_id = row.id;
-          kanjiIds = []; // to be pushed to study_queue
-
-          // Clean non-kanji chars out
-          word = fn.filterKanji(word);
-          var chars = word.split('');
-
-          // For each character in word...
-          var promises = chars.map(function(char){
-            // ...create a promise:
-            return new Promise(function(resolve, reject){
-              // 1) Add kanji to 'kanji' table...
-              db.run('INSERT OR IGNORE INTO kanji (kanji) VALUES (?)', char)
-                .getAsync('SELECT id FROM kanji WHERE kanji = ?', char)
-                .then(function(row){
-                  var kanji_id = row.id;
-                  kanjiIds.push(kanji_id);
-
-                  // 2) Add relationship to kanji_words junction table.
-                  // 3) Add to seen tables for current user_id
-                  db.run('INSERT OR IGNORE INTO kanji_words (kanji_id, word_id) VALUES (?, ?)', kanji_id, word_id)
-                    .run('INSERT INTO seen_words (user_id, word_id) VALUES (?, ?)', userId, word_id)
-                    .run('INSERT INTO seen_kanji (user_id, kanji_id) VALUES (?, ?)', userId, kanji_id);
-                  resolve(true);
-                });
-            });
-          });
-          // Once all are done:
-          return Promise.all(promises);
-        })
-        .then(function(){
-          // 4) Add kanji_id(s) to 'study_queue' table...
-          return fn.enqueue(userId, kanjiIds);
-        })
-        .then(function(added){
-          return added;
         })
         .catch(handleError);
     },
