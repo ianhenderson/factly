@@ -2,9 +2,6 @@ describe("Database layer:", function() {
 
   // Setup
   // beforeAll(function(){
-    var config = {
-      file: 'mockdb.db'
-      };
 
     var user1 = {
       name: 'ian',
@@ -19,7 +16,9 @@ describe("Database layer:", function() {
       pw: 'bob123',
     };
 
-    var db = require('../server/db.js')(config);
+    process.env.FACTLY = 'test';
+    var config = require('../server/config');
+    var db = require('../server/db');
   // });
 
   // Teardown

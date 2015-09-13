@@ -2,250 +2,225 @@ var Promise = require('bluebird');
 var fs = Promise.promisifyAll(require('fs'));
 var sqlite3 = Promise.promisifyAll(require('sqlite3').verbose());
 var bcrypt = Promise.promisifyAll(require('bcryptjs'));
+var config = require('./config');
+var db = new sqlite3.Database(config.file);
+var stmtCache;
 
-module.exports = function(config){
-  config = config || {};
-  var file = config.file || 'test.db';
-  var db = new sqlite3.Database(file);
-  var debug = config.debug || false;
-  var stmtCache;
-  
-  initDatabase(file)
-    .then(initStmtCache);
+initDatabase(config.file)
+  .then(initStmtCache);
 
-  // For debugging:
-  if (debug) {
+// For debugging:
+if (config.debug) {
 
-    db.on('trace', function(query){
-      console.log('TRACE: ', query);
+  db.on('trace', function(query){
+    console.log('TRACE: ', query);
 
+  });
+
+  db.on('profile', function(query, time){
+    console.log('PROFILE: ', time, ':::',query);
+  });
+
+}
+
+
+function initDatabase(name){
+  return new Promise(function(resolve, reject){
+    console.log('Initializing DB file: ', name);
+    fs.openSync(name, 'w');
+    db.run('CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY, name VARCHAR(255) UNIQUE, password VARCHAR(255), salt VARCHAR(255))')
+      // Tables of all unique kanji, words and a junction table
+      .run('CREATE TABLE IF NOT EXISTS kanji (id INTEGER PRIMARY KEY, kanji TEXT UNIQUE)')
+      .run('CREATE TABLE IF NOT EXISTS words (id INTEGER PRIMARY KEY, word TEXT UNIQUE)')
+      .run('CREATE TABLE IF NOT EXISTS kanji_words (kanji TEXT, word_id INTEGER, FOREIGN KEY(kanji) REFERENCES kanji(kanji), FOREIGN KEY(word_id) REFERENCES words(id), CONSTRAINT unq UNIQUE (kanji, word_id))')
+      // Tables of seen words/kanji on a per-user basis
+      .run('CREATE TABLE IF NOT EXISTS seen_words (user_id INTEGER, word_id INTEGER, FOREIGN KEY(user_id) REFERENCES users(id), FOREIGN KEY(word_id) REFERENCES words(id))')
+      .run('CREATE TABLE IF NOT EXISTS seen_kanji (user_id INTEGER, kanji TEXT, FOREIGN KEY(user_id) REFERENCES users(id), FOREIGN KEY(kanji) REFERENCES kanji(kanji))')
+      // Queue of items to study for each user
+      .run('CREATE TABLE IF NOT EXISTS study_queue (user_id INTEGER, queue TEXT, FOREIGN KEY(user_id) REFERENCES users(id))', function(err){
+        console.log(name, 'created.');
+        resolve(true);
+      });
+  });
+}
+
+function initStmtCache(created){
+  // Prepare statements. (must be done AFTER tables have been created else throws error)
+  console.log('Preparing statements...');
+  stmtCache = {
+    addKanji: db.prepare('INSERT OR IGNORE INTO kanji (kanji) VALUES (?)'),
+    addKanjiWords: db.prepare('INSERT OR IGNORE INTO kanji_words (kanji, word_id) VALUES (?, ?)'),
+    addSeenWords: db.prepare('INSERT INTO seen_words (user_id, word_id) VALUES (?, ?)'),
+    addSeenKanji: db.prepare('INSERT INTO seen_kanji (user_id, kanji) VALUES (?, ?)')
+  };
+  console.log('Preparing statements finished.');
+  return;
+}
+
+function handleError(e) {
+  console.error(e);
+}
+
+function addKanjiToKanjiTable(kanjiArray){
+  return new Promise(function(resolve, reject){
+    var stmt;
+    db.serialize(function(){
+      stmtCache.addKanji.reset();
+      db.run('BEGIN TRANSACTION');
+      kanjiArray.forEach(function(char){
+        stmtCache.addKanji.run(char);
+      });
+      db.run('COMMIT');
+      stmtCache.addKanji.reset();
+      resolve(kanjiArray);
     });
+  });
+}
 
-    db.on('profile', function(query, time){
-      console.log('PROFILE: ', time, ':::',query);
+function addKanjiRelationsToOtherTables(userId, word_id, kanjiArray){
+  return new Promise(function(resolve, reject){
+    db.serialize(function(){
+      db.run('BEGIN TRANSACTION');
+
+      stmtCache.addKanjiWords.reset();
+      stmtCache.addSeenWords.reset();
+      stmtCache.addSeenKanji.reset();
+
+      kanjiArray.forEach(function(kanji){
+        stmtCache.addKanjiWords.run(kanji, word_id);
+        stmtCache.addSeenKanji.run(userId, kanji);
+      });
+      stmtCache.addSeenWords.run(userId, word_id);
+
+      stmtCache.addKanjiWords.reset();
+      stmtCache.addSeenWords.reset();
+      stmtCache.addSeenKanji.reset();
+
+      db.run('COMMIT');
+      resolve(kanjiArray);
     });
+  });
+}
 
-  }
 
+module.exports = fn = {
 
-  function initDatabase(name){
-    return new Promise(function(resolve, reject){
-      console.log('Initializing DB file: ', name);
-      fs.openSync(name, 'w');
-      db.run('CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY, name VARCHAR(255) UNIQUE, password VARCHAR(255), salt VARCHAR(255))')
-        // Tables of all unique kanji, words and a junction table
-        .run('CREATE TABLE IF NOT EXISTS kanji (id INTEGER PRIMARY KEY, kanji TEXT UNIQUE)')
-        .run('CREATE TABLE IF NOT EXISTS words (id INTEGER PRIMARY KEY, word TEXT UNIQUE)')
-        .run('CREATE TABLE IF NOT EXISTS kanji_words (kanji TEXT, word_id INTEGER, FOREIGN KEY(kanji) REFERENCES kanji(kanji), FOREIGN KEY(word_id) REFERENCES words(id), CONSTRAINT unq UNIQUE (kanji, word_id))')
-        // Tables of seen words/kanji on a per-user basis
-        .run('CREATE TABLE IF NOT EXISTS seen_words (user_id INTEGER, word_id INTEGER, FOREIGN KEY(user_id) REFERENCES users(id), FOREIGN KEY(word_id) REFERENCES words(id))')
-        .run('CREATE TABLE IF NOT EXISTS seen_kanji (user_id INTEGER, kanji TEXT, FOREIGN KEY(user_id) REFERENCES users(id), FOREIGN KEY(kanji) REFERENCES kanji(kanji))')
-        // Queue of items to study for each user
-        .run('CREATE TABLE IF NOT EXISTS study_queue (user_id INTEGER, queue TEXT, FOREIGN KEY(user_id) REFERENCES users(id))', function(err){
-          console.log(name, 'created.');
-          resolve(true);
-        });
-    });
-  }
-
-  function initStmtCache(created){
-    // Prepare statements. (must be done AFTER tables have been created else throws error)
-    console.log('Preparing statements...');
-    stmtCache = {
-      addKanji: db.prepare('INSERT OR IGNORE INTO kanji (kanji) VALUES (?)'),
-      addKanjiWords: db.prepare('INSERT OR IGNORE INTO kanji_words (kanji, word_id) VALUES (?, ?)'),
-      addSeenWords: db.prepare('INSERT INTO seen_words (user_id, word_id) VALUES (?, ?)'),
-      addSeenKanji: db.prepare('INSERT INTO seen_kanji (user_id, kanji) VALUES (?, ?)')
+  checkUser_: function(name, password){
+    var salt;
+    var hashedPassword;
+    var userInfo;
+    var user = {
+      exists: false,
+      data: null
     };
-    console.log('Preparing statements finished.');
-    return;
-  }
-
-  function handleError(e) {
-    console.error(e);
-  }
-
-  function addKanjiToKanjiTable(kanjiArray){
-    return new Promise(function(resolve, reject){
-      var stmt;
-      db.serialize(function(){
-        stmtCache.addKanji.reset();
-        db.run('BEGIN TRANSACTION');
-        kanjiArray.forEach(function(char){
-          stmtCache.addKanji.run(char);
-        });
-        db.run('COMMIT');
-        stmtCache.addKanji.reset();
-        resolve(kanjiArray);
+    // First, we get users with provided name
+    return db.allAsync('SELECT id, name, password, salt FROM users WHERE name = ?', name)
+      .then(function(rows){
+        userInfo = rows;
+        if (!rows.length) return user;
+        user.exists = true;
+        // Get salt, hashed password for user
+        salt = rows[0].salt;
+        hashedPassword = rows[0].password;
+        // Generate hash from provided password and retrieved salt
+        return bcrypt.hashAsync(password, salt)
+          .then(function(hash){
+            // Check against DB values
+            if (hash === hashedPassword){
+              user.data = {
+                id: userInfo[0].id,
+                name: userInfo[0].name
+              };
+            }
+            return user;
+          });
+      })
+      .catch(function(e){
+        console.error(e);
       });
-    });
-  }
+  },
 
-  function addKanjiRelationsToOtherTables(userId, word_id, kanjiArray){
-    return new Promise(function(resolve, reject){
-      db.serialize(function(){
-        db.run('BEGIN TRANSACTION');
-
-        stmtCache.addKanjiWords.reset();
-        stmtCache.addSeenWords.reset();
-        stmtCache.addSeenKanji.reset();
-
-        kanjiArray.forEach(function(kanji){
-          stmtCache.addKanjiWords.run(kanji, word_id);
-          stmtCache.addSeenKanji.run(userId, kanji);
-        });
-        stmtCache.addSeenWords.run(userId, word_id);
-
-        stmtCache.addKanjiWords.reset();
-        stmtCache.addSeenWords.reset();
-        stmtCache.addSeenKanji.reset();
-
-        db.run('COMMIT');
-        resolve(kanjiArray);
+  addNewUser_: function(name, password){
+    // Generate salt for password
+    return bcrypt.genSaltAsync(8)
+      .then(function(salt){
+        // Generate salted hash
+        return bcrypt.hashAsync(password, salt)
+          .then(function(hash){
+            // Save name, hashed password and salt to DB, then create initial entry in study_queue.
+            var q = JSON.stringify([0]);
+            return db.run('BEGIN TRANSACTION')
+              .run('INSERT OR IGNORE INTO users (name, password, salt) VALUES (?, ?, ?)', name, hash, salt)
+              .run('INSERT OR IGNORE INTO study_queue (user_id, queue) SELECT id, ? FROM users WHERE name=?', q, name)
+              .run('COMMIT')
+              .getAsync('SELECT id, name FROM users WHERE name=? AND password=?', name, hash);
+          });
+      })
+      .catch(function(e){
+        console.error(e);
+        return e;
       });
-    });
-  }
+  },
 
+  addWord_2: function(userId, word){
+    // Add word to 'words' table.
+    return db.run('INSERT OR IGNORE INTO words (word) VALUES (?)', word)
+             .getAsync('SELECT id FROM words WHERE word = ?', word)
+      .then(function(row){
+        var word_id = row.id;
 
-  return fn = {
+        // Clean non-kanji chars out
+        word = fn.filterKanji(word);
+        var kanjiArray = word.split('');
 
-    checkUser_: function(name, password){
-      var salt;
-      var hashedPassword;
-      var userInfo;
-      var user = {
-        exists: false,
-        data: null
-      };
-      // First, we get users with provided name
-      return db.allAsync('SELECT id, name, password, salt FROM users WHERE name = ?', name)
-        .then(function(rows){
-          userInfo = rows;
-          if (!rows.length) return user;
-          user.exists = true;
-          // Get salt, hashed password for user
-          salt = rows[0].salt;
-          hashedPassword = rows[0].password;
-          // Generate hash from provided password and retrieved salt
-          return bcrypt.hashAsync(password, salt)
-            .then(function(hash){
-              // Check against DB values
-              if (hash === hashedPassword){
-                user.data = {
-                  id: userInfo[0].id,
-                  name: userInfo[0].name
-                };
-              }
-              return user;
+        // For each character in word...
+          // 1) Add kanji to 'kanji' table...
+          return addKanjiToKanjiTable(kanjiArray)
+            // 2) Add relationship to kanji_words junction table.
+            // 3) Add to seen tables for current user_id
+            .then(function(kanjiArray){
+              return addKanjiRelationsToOtherTables(userId, word_id, kanjiArray);
+            })
+            // 4) Add kanji to 'study_queue' table...
+            .then(function(kanjiArray){
+              return fn.enqueue(userId, kanjiArray);
             });
-        })
-        .catch(function(e){
-          console.error(e);
-        });
-    },
 
-    addNewUser_: function(name, password){
-      // Generate salt for password
-      return bcrypt.genSaltAsync(8)
-        .then(function(salt){
-          // Generate salted hash
-          return bcrypt.hashAsync(password, salt)
-            .then(function(hash){
-              // Save name, hashed password and salt to DB, then create initial entry in study_queue.
-              var q = JSON.stringify([0]);
-              return db.run('BEGIN TRANSACTION')
-                .run('INSERT OR IGNORE INTO users (name, password, salt) VALUES (?, ?, ?)', name, hash, salt)
-                .run('INSERT OR IGNORE INTO study_queue (user_id, queue) SELECT id, ? FROM users WHERE name=?', q, name)
-                .run('COMMIT')
-                .getAsync('SELECT id, name FROM users WHERE name=? AND password=?', name, hash);
-            });
-        })
-        .catch(function(e){
-          console.error(e);
-          return e;
-        });
-    },
+      })
+      .catch(handleError);
+  },
 
-    addWord_2: function(userId, word){
-      // Add word to 'words' table.
-      return db.run('INSERT OR IGNORE INTO words (word) VALUES (?)', word)
-               .getAsync('SELECT id FROM words WHERE word = ?', word)
-        .then(function(row){
-          var word_id = row.id;
-
-          // Clean non-kanji chars out
-          word = fn.filterKanji(word);
-          var kanjiArray = word.split('');
-
-          // For each character in word...
-            // 1) Add kanji to 'kanji' table...
-            return addKanjiToKanjiTable(kanjiArray)
-              // 2) Add relationship to kanji_words junction table.
-              // 3) Add to seen tables for current user_id
-              .then(function(kanjiArray){
-                return addKanjiRelationsToOtherTables(userId, word_id, kanjiArray);
-              })
-              // 4) Add kanji to 'study_queue' table...
-              .then(function(kanjiArray){
-                return fn.enqueue(userId, kanjiArray);
-              });
-
-        })
-        .catch(handleError);
-    },
-
-    // Add to queue
-    enqueue: function(userId, kanjiArray){
-      return db.getAsync('SELECT queue FROM study_queue WHERE study_queue.user_id = ?', userId)
-        .then(function(row){
-          var q = row && JSON.parse(row.queue);
-          q = q ? q.concat(kanjiArray) : kanjiArray ;
-          var q_string = JSON.stringify(q);
-          if (row){
-            db.run('UPDATE study_queue SET queue = ? WHERE user_id = ?', q_string, userId);
-          } else {
-            db.run('INSERT INTO study_queue (user_id, queue) VALUES (?, ?)', userId, q_string);
-          }
-          return true;
-        })
-        .catch(handleError);
-    },
-
-    // Update queue (ie. we're done with the last value)
-    dequeue: function(userId){
-      db.get('SELECT queue FROM study_queue WHERE user_id = ?', userId, function(err, row){
-        var q = JSON.parse(row.queue);
-        var first = q.shift();
+  // Add to queue
+  enqueue: function(userId, kanjiArray){
+    return db.getAsync('SELECT queue FROM study_queue WHERE study_queue.user_id = ?', userId)
+      .then(function(row){
+        var q = row && JSON.parse(row.queue);
+        q = q ? q.concat(kanjiArray) : kanjiArray ;
         var q_string = JSON.stringify(q);
-        db.run('UPDATE study_queue SET queue = ? WHERE user_id = ?', q_string, userId);
-      });
-    },
-
-    // Read from queue (next kanji_id to show to user)
-    getNextFromQueue_: function(userId, cb){
-      return db.getAsync('SELECT queue FROM study_queue WHERE user_id = ?', userId)
-        .then(function(row){
-          var q = JSON.parse(row.queue);
-          if (q.length === 0) {
-            cb(null);
-            return;
-          }
-          var first = q.shift();
-          var q_string = JSON.stringify(q);
+        if (row){
           db.run('UPDATE study_queue SET queue = ? WHERE user_id = ?', q_string, userId);
-          return first;
-          // return db.getAsync('SELECT kanji FROM kanji WHERE id = ?', first)
-          //   .then(function(kanjiRow){
-          //     var nextKanji = kanjiRow.kanji;
-          //     return nextKanji;
-          //   });
-        })
-        .catch(handleError);
-    },
+        } else {
+          db.run('INSERT INTO study_queue (user_id, queue) VALUES (?, ?)', userId, q_string);
+        }
+        return true;
+      })
+      .catch(handleError);
+  },
 
-    // Read from queue (next kanji_id to show to user)
-    getNextFromQueue: function(userId, cb){
-      db.get('SELECT queue FROM study_queue WHERE user_id = ?', userId, function(err, row){
+  // Update queue (ie. we're done with the last value)
+  dequeue: function(userId){
+    db.get('SELECT queue FROM study_queue WHERE user_id = ?', userId, function(err, row){
+      var q = JSON.parse(row.queue);
+      var first = q.shift();
+      var q_string = JSON.stringify(q);
+      db.run('UPDATE study_queue SET queue = ? WHERE user_id = ?', q_string, userId);
+    });
+  },
+
+  // Read from queue (next kanji_id to show to user)
+  getNextFromQueue_: function(userId, cb){
+    return db.getAsync('SELECT queue FROM study_queue WHERE user_id = ?', userId)
+      .then(function(row){
         var q = JSON.parse(row.queue);
         if (q.length === 0) {
           cb(null);
@@ -254,18 +229,38 @@ module.exports = function(config){
         var first = q.shift();
         var q_string = JSON.stringify(q);
         db.run('UPDATE study_queue SET queue = ? WHERE user_id = ?', q_string, userId);
-        db.get('SELECT kanji FROM kanji WHERE id = ?', first, function(err, kanjiRow){
-          var nextKanji = kanjiRow.kanji;
-          cb(nextKanji);
-        });
+        return first;
+        // return db.getAsync('SELECT kanji FROM kanji WHERE id = ?', first)
+        //   .then(function(kanjiRow){
+        //     var nextKanji = kanjiRow.kanji;
+        //     return nextKanji;
+        //   });
+      })
+      .catch(handleError);
+  },
+
+  // Read from queue (next kanji_id to show to user)
+  getNextFromQueue: function(userId, cb){
+    db.get('SELECT queue FROM study_queue WHERE user_id = ?', userId, function(err, row){
+      var q = JSON.parse(row.queue);
+      if (q.length === 0) {
+        cb(null);
+        return;
+      }
+      var first = q.shift();
+      var q_string = JSON.stringify(q);
+      db.run('UPDATE study_queue SET queue = ? WHERE user_id = ?', q_string, userId);
+      db.get('SELECT kanji FROM kanji WHERE id = ?', first, function(err, kanjiRow){
+        var nextKanji = kanjiRow.kanji;
+        cb(nextKanji);
       });
-    },
+    });
+  },
 
-    // Helper function to strip out non-kanji characters
-    filterKanji: function(str){
-       return str.replace(/[^\u4e00-\u9faf]/g, '');
-    }
+  // Helper function to strip out non-kanji characters
+  filterKanji: function(str){
+     return str.replace(/[^\u4e00-\u9faf]/g, '');
+  }
 
-  };
-  
 };
+

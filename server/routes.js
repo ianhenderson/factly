@@ -1,5 +1,6 @@
-var db = require('./db.js')();
+var db = require('./db.js');
 var Promise = require('bluebird');
+var ctrl = require('./controller');
 
 module.exports = function(app){
 
