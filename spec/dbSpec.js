@@ -3,7 +3,7 @@ describe("Database layer:", function() {
   // Setup
   // beforeAll(function(){
     var config = {
-      file: 'mockdb.js'
+      file: 'mockdb.db'
       };
 
     var user1 = {
@@ -60,7 +60,7 @@ describe("Database layer:", function() {
   it('should add kanji properly and in order', function(done) {
     db.checkUser_(user1.name, user1.pw)
       .then(function(data){
-        db.addWord_(data.id, user1.k1)
+        db.addWord_2(data.id, user1.k1)
           .then(function(added){
             expect(added).toBe(true);
             done();

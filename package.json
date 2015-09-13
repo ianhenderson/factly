@@ -4,7 +4,7 @@
   "description": "factly ======",
   "main": "server.js",
   "scripts": {
-    "test": "mocha",
+    "test": "jasmine",
     "build": "node ./build.js",
     "postinstall": "npm run build"
   },
