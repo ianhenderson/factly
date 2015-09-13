@@ -30,25 +30,21 @@ module.exports = function(config){
 
   function initDatabase(name){
     return new Promise(function(resolve, reject){
-      if (fs.existsSync(name)) {
-        resolve(true);
-      } else {
-        console.log('Creating DB file: ', name);
-        fs.openSync(name, 'w');
-        db.run('CREATE TABLE users (id INTEGER PRIMARY KEY, name VARCHAR(255) UNIQUE, password VARCHAR(255), salt VARCHAR(255))')
-          // Tables of all unique kanji, words and a junction table
-          .run('CREATE TABLE kanji (id INTEGER PRIMARY KEY, kanji TEXT UNIQUE)')
-          .run('CREATE TABLE words (id INTEGER PRIMARY KEY, word TEXT UNIQUE)')
-          .run('CREATE TABLE kanji_words (kanji TEXT, word_id INTEGER, FOREIGN KEY(kanji) REFERENCES kanji(kanji), FOREIGN KEY(word_id) REFERENCES words(id), CONSTRAINT unq UNIQUE (kanji, word_id))')
-          // Tables of seen words/kanji on a per-user basis
-          .run('CREATE TABLE seen_words (user_id INTEGER, word_id INTEGER, FOREIGN KEY(user_id) REFERENCES users(id), FOREIGN KEY(word_id) REFERENCES words(id))')
-          .run('CREATE TABLE seen_kanji (user_id INTEGER, kanji TEXT, FOREIGN KEY(user_id) REFERENCES users(id), FOREIGN KEY(kanji) REFERENCES kanji(kanji))')
-          // Queue of items to study for each user
-          .run('CREATE TABLE study_queue (user_id INTEGER, queue TEXT, FOREIGN KEY(user_id) REFERENCES users(id))', function(err){
-            console.log(name, 'created.');
-            resolve(true);
-          });
-      }
+      console.log('Initializing DB file: ', name);
+      fs.openSync(name, 'w');
+      db.run('CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY, name VARCHAR(255) UNIQUE, password VARCHAR(255), salt VARCHAR(255))')
+        // Tables of all unique kanji, words and a junction table
+        .run('CREATE TABLE IF NOT EXISTS kanji (id INTEGER PRIMARY KEY, kanji TEXT UNIQUE)')
+        .run('CREATE TABLE IF NOT EXISTS words (id INTEGER PRIMARY KEY, word TEXT UNIQUE)')
+        .run('CREATE TABLE IF NOT EXISTS kanji_words (kanji TEXT, word_id INTEGER, FOREIGN KEY(kanji) REFERENCES kanji(kanji), FOREIGN KEY(word_id) REFERENCES words(id), CONSTRAINT unq UNIQUE (kanji, word_id))')
+        // Tables of seen words/kanji on a per-user basis
+        .run('CREATE TABLE IF NOT EXISTS seen_words (user_id INTEGER, word_id INTEGER, FOREIGN KEY(user_id) REFERENCES users(id), FOREIGN KEY(word_id) REFERENCES words(id))')
+        .run('CREATE TABLE IF NOT EXISTS seen_kanji (user_id INTEGER, kanji TEXT, FOREIGN KEY(user_id) REFERENCES users(id), FOREIGN KEY(kanji) REFERENCES kanji(kanji))')
+        // Queue of items to study for each user
+        .run('CREATE TABLE IF NOT EXISTS study_queue (user_id INTEGER, queue TEXT, FOREIGN KEY(user_id) REFERENCES users(id))', function(err){
+          console.log(name, 'created.');
+          resolve(true);
+        });
     });
   }
 
