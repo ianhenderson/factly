@@ -1,15 +1,15 @@
 var env = process.env.FACTLY || 'prod';
 
-console.log('env', env);
-
 var config = {
   test: {
     file: 'mock.db',
-    debug: false
+    debug: false,
+    port: process.env.PORT || 3000
   },
   prod: {
     file: 'test.db',
-    debug: false
+    debug: false,
+    port: process.env.PORT || 3000
   }
 };
 
