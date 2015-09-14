@@ -161,4 +161,18 @@ describe("Integration tests:", function() {
     
   });
 
+  it('Logout', function(done) {
+    agent
+      .post('/api/logout')
+      .expect(200)
+      .end(finish(done));
+  });
+
+  it('Get after logout', function(done) {
+    agent
+      .get('/api/kanji')
+      .expect(403)
+      .end(finish(done));
+  });
+
 });
