@@ -1,25 +1,28 @@
-describe("Database layer:", function() {
+process.env.FACTLY = 'test';
+var config = require('../server/config');
+var db;
+
+xdescribe("Database layer:", function() {
+
+  var user1 = {
+    name: 'ian',
+    pw: 'ian123',
+    k1: '漢字',
+    k2: '株式会社',
+    k3: '字幕',
+  };
+
+  var user2 = {
+    name: 'bob',
+    pw: 'bob123',
+  };
 
   // Setup
-  // beforeAll(function(){
+  beforeAll(function(){
+    db = require('../server/db');
+  });
 
-    var user1 = {
-      name: 'ian',
-      pw: 'ian123',
-      k1: '漢字',
-      k2: '株式会社',
-      k3: '字幕',
-    };
 
-    var user2 = {
-      name: 'bob',
-      pw: 'bob123',
-    };
-
-    process.env.FACTLY = 'test';
-    var config = require('../server/config');
-    var db = require('../server/db');
-  // });
 
   // Teardown
   afterAll(function(){
@@ -65,14 +68,5 @@ describe("Database layer:", function() {
             done();
           });
       });
-
   });
-  // it('should ', function(done) {
-  // });
-  // it('', function(done) {
-  // });
-  // it('', function(done) {
-  // });
-  // it('', function(done) {
-  // });
 });
