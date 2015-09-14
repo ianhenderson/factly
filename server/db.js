@@ -105,7 +105,7 @@ function addKanjiRelationsToOtherTables(userId, word_id, kanjiArray){
 
 module.exports = fn = {
 
-  checkUser_: function(name, password){
+  checkUser: function(name, password){
     var salt;
     var hashedPassword;
     var userInfo;
@@ -140,7 +140,7 @@ module.exports = fn = {
       });
   },
 
-  addNewUser_: function(name, password){
+  addNewUser: function(name, password){
     // Generate salt for password
     return bcrypt.genSaltAsync(8)
       .then(function(salt){
@@ -162,7 +162,7 @@ module.exports = fn = {
       });
   },
 
-  addWord_2: function(userId, word){
+  addWord: function(userId, word){
     // Add word to 'words' table.
     return db.run('INSERT OR IGNORE INTO words (word) VALUES (?)', word)
              .getAsync('SELECT id FROM words WHERE word = ?', word)

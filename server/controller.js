@@ -18,7 +18,7 @@ function login(req, res){
     var name = req.body.username;
     var password = req.body.password;
 
-    db.checkUser_(name, password)
+    db.checkUser(name, password)
     .then(function(session){
 
       if (session.data){
@@ -53,7 +53,7 @@ function signup(req, res){
     var username = req.body.username;
     var password = req.body.password;
 
-    db.checkUser_(username, password)
+    db.checkUser(username, password)
       .then(function(user){
 
         if (user.exists){
@@ -62,7 +62,7 @@ function signup(req, res){
 
         } else {
 
-          db.addNewUser_(username, password)
+          db.addNewUser(username, password)
             .then(function(user){
 
               res.status(201).send(user);
@@ -119,7 +119,7 @@ function addFact(req, res){
     var name = c.session.name;
     var fact = req.body.fact;
 
-    db.addWord_2(id, fact)
+    db.addWord(id, fact)
       .then(function(added){
         res.status(201).send(["Success! Fact added to ", name, "'s collection: ", fact].join(''));
       });
