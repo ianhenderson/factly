@@ -35,6 +35,13 @@ describe("Integration tests:", function() {
     fs.unlink(config.file);
   });
 
+  it('Get kanji w/out session', function(done) {
+    agent
+      .get('/api/kanji')
+      .expect(403)
+      .end(finish(done));
+  });
+
   it('Sign up', function(done) {
     var expectedResponse = {
       id: 1,
