@@ -4,21 +4,21 @@ var Promise = require('bluebird');
 function login(req, res){
 
   var c = req.cookies;
+  var username = req.body.username;
+  var password = req.body.password;
+
   if (c && c.session && c.session.id) {
     res.status(200).send('Already logged in as ' + c.session.name);
     return;
   }
 
-  if (!req.body.username || !req.body.password){
+  if (!username || !password){
 
     res.status(400).send("Error: POST must include a name and password.");
 
   } else {
 
-    var name = req.body.username;
-    var password = req.body.password;
-
-    db.checkUser(name, password)
+    db.checkUser(username, password)
     .then(function(session){
 
       if (session.data){
@@ -44,14 +44,14 @@ function logout(req, res){
 
 function signup(req, res){
 
-  if (!req.body.username || !req.body.password){
+  var username = req.body.username;
+  var password = req.body.password;
+
+  if (!username || !password){
 
     res.status(400).send("Error: POST must include a username and password.");
 
   } else {
-
-    var username = req.body.username;
-    var password = req.body.password;
 
     db.checkUser(username, password)
       .then(function(user){
@@ -68,7 +68,6 @@ function signup(req, res){
               res.status(201).send(user);
               
             });
-
         }
 
       });
@@ -108,16 +107,16 @@ function getFacts(req, res){
 
 function addFact(req, res){
 
-  if (!req.body.fact){
+  var c = req.cookies;
+  var id = c.session.id;
+  var name = c.session.name;
+  var fact = req.body.fact;
+
+  if (!fact){
 
     res.status(400).send("Error: POST must include a fact.");
 
   } else {
-
-    var c = req.cookies;
-    var id = c.session.id;
-    var name = c.session.name;
-    var fact = req.body.fact;
 
     db.addWord(id, fact)
       .then(function(added){

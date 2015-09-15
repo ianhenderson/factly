@@ -123,43 +123,40 @@ module.exports = fn = {
         salt = rows[0].salt;
         hashedPassword = rows[0].password;
         // Generate hash from provided password and retrieved salt
-        return bcrypt.hashAsync(password, salt)
-          .then(function(hash){
-            // Check against DB values
-            if (hash === hashedPassword){
-              user.data = {
-                id: userInfo[0].id,
-                name: userInfo[0].name
-              };
-            }
-            return user;
-          });
+        return bcrypt.hashAsync(password, salt);
       })
-      .catch(function(e){
-        console.error(e);
-      });
+      .then(function(hash){
+        // Check against DB values
+        if (hash === hashedPassword){
+          user.data = {
+            id: userInfo[0].id,
+            name: userInfo[0].name
+          };
+        }
+        return user;
+      })
+      .catch(handleError);
   },
 
   addNewUser: function(name, password){
+    var salt;
     // Generate salt for password
     return bcrypt.genSaltAsync(8)
-      .then(function(salt){
+      .then(function(_salt){
+        salt = _salt;
         // Generate salted hash
-        return bcrypt.hashAsync(password, salt)
-          .then(function(hash){
-            // Save name, hashed password and salt to DB, then create initial entry in study_queue.
-            var q = JSON.stringify([0]);
-            return db.run('BEGIN TRANSACTION')
-              .run('INSERT OR IGNORE INTO users (name, password, salt) VALUES (?, ?, ?)', name, hash, salt)
-              .run('INSERT OR IGNORE INTO study_queue (user_id, queue) SELECT id, ? FROM users WHERE name=?', q, name)
-              .run('COMMIT')
-              .getAsync('SELECT id, name FROM users WHERE name=? AND password=?', name, hash);
-          });
+        return bcrypt.hashAsync(password, salt);
       })
-      .catch(function(e){
-        console.error(e);
-        return e;
-      });
+      .then(function(hash){
+        // Save name, hashed password and salt to DB, then create initial entry in study_queue.
+        var q = JSON.stringify([0]);
+        return db.run('BEGIN TRANSACTION')
+          .run('INSERT OR IGNORE INTO users (name, password, salt) VALUES (?, ?, ?)', name, hash, salt)
+          .run('INSERT OR IGNORE INTO study_queue (user_id, queue) SELECT id, ? FROM users WHERE name=?', q, name)
+          .run('COMMIT')
+          .getAsync('SELECT id, name FROM users WHERE name=? AND password=?', name, hash);
+      })
+      .catch(handleError);
   },
 
   addWord: function(userId, word){
@@ -222,39 +219,13 @@ module.exports = fn = {
     return db.getAsync('SELECT queue FROM study_queue WHERE user_id = ?', userId)
       .then(function(row){
         var q = JSON.parse(row.queue);
-        if (q.length === 0) {
-          cb(null);
-          return;
-        }
+        if (q.length === 0) { return null; }
         var first = q.shift();
         var q_string = JSON.stringify(q);
         db.run('UPDATE study_queue SET queue = ? WHERE user_id = ?', q_string, userId);
         return first;
-        // return db.getAsync('SELECT kanji FROM kanji WHERE id = ?', first)
-        //   .then(function(kanjiRow){
-        //     var nextKanji = kanjiRow.kanji;
-        //     return nextKanji;
-        //   });
       })
       .catch(handleError);
-  },
-
-  // Read from queue (next kanji_id to show to user)
-  getNextFromQueue: function(userId, cb){
-    db.get('SELECT queue FROM study_queue WHERE user_id = ?', userId, function(err, row){
-      var q = JSON.parse(row.queue);
-      if (q.length === 0) {
-        cb(null);
-        return;
-      }
-      var first = q.shift();
-      var q_string = JSON.stringify(q);
-      db.run('UPDATE study_queue SET queue = ? WHERE user_id = ?', q_string, userId);
-      db.get('SELECT kanji FROM kanji WHERE id = ?', first, function(err, kanjiRow){
-        var nextKanji = kanjiRow.kanji;
-        cb(nextKanji);
-      });
-    });
   },
 
   // Helper function to strip out non-kanji characters
@@ -263,4 +234,3 @@ module.exports = fn = {
   }
 
 };
-
