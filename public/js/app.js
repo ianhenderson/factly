@@ -203,7 +203,11 @@ angular.module('KSTool', ['ui.router', 'ngMaterial'])
 })
 .factory('K', function($http, $q, LocalStorage){
 
-    function addWord(word){
+    function addWord(word, splitOnNewline){
+        word = word.replace(/\n+/g, '\n');
+        if (splitOnNewline) {
+            word = word.split(/\n/);
+        }
         var config = {
             method: 'POST',
             url: '/api/facts',
@@ -341,7 +345,7 @@ angular.module('KSTool', ['ui.router', 'ngMaterial'])
 
     $scope.addWord = function(){
         var word = $scope.word;
-        K.addWord(word)
+        K.addWord(word, true)
         .then(function(data){
             $scope.word = '';
             Toast(data);

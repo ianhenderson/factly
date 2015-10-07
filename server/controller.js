@@ -118,7 +118,9 @@ function addFact(req, res){
 
   } else {
 
-    db.addWord(id, fact)
+    if (!Array.isArray(fact)) { fact = [fact] }
+
+    db.addWords(id, fact)
       .then(function(added){
         res.status(201).send(["Success! Fact added to ", name, "'s collection: ", fact].join(''));
       });
