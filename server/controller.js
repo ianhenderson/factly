@@ -84,7 +84,14 @@ function getKanji(req, res){
     .then(function(kanji){
 
       if (kanji) {
-        res.status(200).send(kanji);
+        db.getSeenWordsRelatedToKanji(id, kanji)
+          .then(function(words){
+            var response = {
+              kanji: kanji,
+              words: words
+            };
+            res.status(200).send(response);
+          });
       } else {
         res.status(404).send("Nothing more to study.");
       }
@@ -128,11 +135,27 @@ function addFact(req, res){
   }
 }
 
+function getRelatedWords(req, res){
+
+  var c = req.cookies;
+  var id = c.session.id;
+  var kanji = req.body.kanji;
+
+  db.getSeenWordsRelatedToKanji(kanji, id)
+    .then(function(rows){
+
+      res.status(200).send(rows);
+
+    });
+
+}
+
 module.exports = {
   login: login,
   logout: logout,
   signup: signup,
   getKanji: getKanji,
   getFacts: getFacts,
-  addFact: addFact
+  addFact: addFact,
+  getRelatedWords: getRelatedWords
 };

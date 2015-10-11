@@ -2,8 +2,13 @@
 
     <md-card layout-margin layout-padding layout-align="center center">
         <h1>
-            {{type}}
+            {{type.kanji}}
         </h1>
+        <ul>
+          <li ng-repeat="word in type.words">
+              {{word}}
+          </li>
+        </ul>
     </md-card>
 
     <md-card layout-margin >

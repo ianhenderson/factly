@@ -47,7 +47,7 @@ describe("Tests:", function() {
     require('../server/middleware.js')(app);
     require('../server/routes.js')(app);
     server = app.listen(config.port);
-    db = require('../server/db.js')._db;
+    db = require('../server/db.js');
     filter = require('../server/db.js').filterKanji;
   });
 
@@ -133,24 +133,34 @@ describe("Tests:", function() {
         .end(finish(done));
     });
 
+    it('get seen words related to certain kanji', function(done){
+      db.getSeenWordsRelatedToKanji(1, newUser1.fact[0][0])
+        .then(function(rows){
+          expect(rows).toBeDefined();
+          expect(rows.length).toEqual(1);
+          expect(rows[0]).toEqual('日本語盛り上がりの');
+          done();
+        });
+    });
+
     describe('DB Integrity - ', function(){
 
       it('add words to words table', function(done){
-        db.all('SELECT * FROM words', function(err, rows){
+        db._db.all('SELECT * FROM words', function(err, rows){
           expect(rows.length).toEqual(1);
           done();
         });
       });
 
       it('add kanji to kanji table', function(done){
-        db.all('SELECT * FROM kanji', function(err, rows){
+        db._db.all('SELECT * FROM kanji', function(err, rows){
           expect(rows.length).toEqual(newUser1.fact_stripped.length);
           done();
         });
       });
 
       it('add kanji-word relations to kanji_words table', function(done){
-        db.all('SELECT * FROM kanji_words', function(err, rows){
+        db._db.all('SELECT * FROM kanji_words', function(err, rows){
           var uniqChars = uniqs(newUser1.fact_stripped);
           expect(rows.length).toEqual(uniqChars.length);
           done();
@@ -158,39 +168,46 @@ describe("Tests:", function() {
       });
 
       it('add words to seen_words table', function(done){
-        db.all('SELECT * FROM seen_words', function(err, rows){
+        db._db.all('SELECT * FROM seen_words', function(err, rows){
           expect(rows.length).toEqual(1);
           done();
         });
       });
 
       it('add kanji to seen_kanji table', function(done){
-        db.all('SELECT * FROM seen_kanji', function(err, rows){
+        db._db.all('SELECT * FROM seen_kanji', function(err, rows){
           expect(rows.length).toEqual(newUser1.fact_stripped.length);
           done();
         });
       });
 
       it('add kanji to study_queue table', function(done){
-        db.all('SELECT * FROM study_queue', function(err, rows){
+        db._db.all('SELECT * FROM study_queue', function(err, rows){
           var queue = JSON.parse(rows[0].queue);
           var q2string = queue.join('');
           expect(q2string).toEqual(newUser1.fact_stripped);
           done();
         });
       });
-    })
+    });
 
 
     describe('Get kanji when list is non-empty:', function(){
 
       var kanjiOnly = newUser1.fact_stripped.split('');
 
+      function matchBody(k){
+        return function(res){
+          expect(res.body.kanji).toEqual(k);
+        };
+      }
+
       it('Non-kanji characters should be stripped out', function(done) {
         var k = kanjiOnly.shift(); // 日
         agent
           .get('/api/kanji')
-          .expect(200, k)
+          .expect(200)
+          .expect(matchBody(k))
           .end(finish(done));
       });
       
@@ -198,7 +215,8 @@ describe("Tests:", function() {
         var k = kanjiOnly.shift(); // 本
         agent
           .get('/api/kanji')
-          .expect(200, k)
+          .expect(200)
+          .expect(matchBody(k))
           .end(finish(done));
       });
       
@@ -206,7 +224,8 @@ describe("Tests:", function() {
         var k = kanjiOnly.shift(); // 語
         agent
           .get('/api/kanji')
-          .expect(200, k)
+          .expect(200)
+          .expect(matchBody(k))
           .end(finish(done));
       });
       
@@ -214,7 +233,8 @@ describe("Tests:", function() {
         var k = kanjiOnly.shift(); // 盛
         agent
           .get('/api/kanji')
-          .expect(200, k)
+          .expect(200)
+          .expect(matchBody(k))
           .end(finish(done));
       });
       
@@ -222,7 +242,8 @@ describe("Tests:", function() {
         var k = kanjiOnly.shift(); // 上
         agent
           .get('/api/kanji')
-          .expect(200, k)
+          .expect(200)
+          .expect(matchBody(k))
           .end(finish(done));
       });
       
@@ -261,49 +282,49 @@ describe("Tests:", function() {
       var relations = allChars.length;
 
       it('add words to words table', function(done){
-        db.all('SELECT * FROM words', function(err, rows){
+        db._db.all('SELECT * FROM words', function(err, rows){
           expect(rows.length).toEqual(4);
           done();
         });
       });
 
       it('add kanji to kanji table', function(done){
-        db.all('SELECT * FROM kanji', function(err, rows){
+        db._db.all('SELECT * FROM kanji', function(err, rows){
           expect(rows.length).toEqual(uniqChars.length);
           done();
         });
       });
 
       it('add kanji-word relations to kanji_words table', function(done){
-        db.all('SELECT * FROM kanji_words', function(err, rows){
+        db._db.all('SELECT * FROM kanji_words', function(err, rows){
           expect(rows.length).toEqual(relations);
           done();
         });
       });
 
       it('add words to seen_words table', function(done){
-        db.all('SELECT * FROM seen_words', function(err, rows){
+        db._db.all('SELECT * FROM seen_words', function(err, rows){
           expect(rows.length).toEqual(4);
           done();
         });
       });
 
       it('add kanji to seen_kanji table', function(done){
-        db.all('SELECT * FROM seen_kanji', function(err, rows){
+        db._db.all('SELECT * FROM seen_kanji', function(err, rows){
           expect(rows.length).toEqual(relations);
           done();
         });
       });
 
       it('add kanji to study_queue table', function(done){
-        db.all('SELECT * FROM study_queue', function(err, rows){
+        db._db.all('SELECT * FROM study_queue', function(err, rows){
           var queue = JSON.parse(rows[0].queue);
           var q2string = queue.join('');
           expect(q2string).toEqual(newUser1.facts_stripped);
           done();
         });
       });
-    })
+    });
 
     it('Logout', function(done) {
       agent
