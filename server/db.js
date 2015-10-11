@@ -10,17 +10,15 @@ initDatabase(config.file)
   .then(initStmtCache);
 
 // For debugging:
-if (config.debug) {
-
+if (config.trace) {
   db.on('trace', function(query){
     console.log('TRACE: ', query);
-
   });
-
+}
+if (config.profile) {
   db.on('profile', function(query, time){
     console.log('PROFILE: ', time, ':::',query);
   });
-
 }
 
 
