@@ -1,18 +1,18 @@
 <md-content>
 
-    <md-card layout-margin layout-padding layout-align="center center">
+    <md-card layout-margin >
+        <md-button class="md-raised" ng-click="getNextChar()">Get next character</md-button>
+    </md-card>
+
+    <md-card flex layout="row" layout-margin layout-padding >
         <h1>
             {{type.kanji}}
         </h1>
         <ul>
-          <li ng-repeat="word in type.words">
+          <li ng-repeat="word in type.words track by $index">
               {{word}}
           </li>
         </ul>
-    </md-card>
-
-    <md-card layout-margin >
-        <md-button class="md-raised" ng-click="getNextChar()">Get next character</md-button>
     </md-card>
 
 </md-content>
