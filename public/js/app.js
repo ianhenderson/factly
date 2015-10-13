@@ -1,4 +1,4 @@
-angular.module('KSTool', ['ui.router', 'ngMaterial'])
+angular.module('KSTool', ['ui.router', 'ngMaterial', 'ngSanitize'])
 
 ///////////////////// Setup & Config /////////////////////
 
@@ -222,7 +222,6 @@ angular.module('KSTool', ['ui.router', 'ngMaterial'])
             .catch(function(response){
                 return response.data;
             });
-
     }
 
     function getNextChar(){
@@ -232,6 +231,8 @@ angular.module('KSTool', ['ui.router', 'ngMaterial'])
         };
         return $http(config)
             .then(function(response){
+                var highlight = highlightKanji(response.data.kanji);
+                response.data.words = response.data.words.map(highlight);
                 return response.data;
             })
             .catch(function(response){
@@ -239,6 +240,19 @@ angular.module('KSTool', ['ui.router', 'ngMaterial'])
             });
     }
 
+    function wrapKanji(kanji){
+        return [
+            '<span class="hl">',
+            kanji,
+            '</span>'
+        ].join('');
+    }
+
+    function highlightKanji(kanji, str){
+        return function(str){
+            return str.replace(kanji, wrapKanji(kanji));
+        };
+    }
 
     // Public methods to be used elsewhere in the app.
     return K = {

@@ -1,7 +1,14 @@
 .pic {
-    width: 70px;
-    margin: 10px;
+  width: 70px;
+  margin: 10px;
 }
 .hamburger {
-    font-size: larger;
+  font-size: larger;
+}
+.hl {
+  color: fuchsia;
+  font-weight: bold;
+}
+#index, #content {
+  height: 100%;
 }

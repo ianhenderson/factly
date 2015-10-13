@@ -9,9 +9,7 @@
             {{type.kanji}}
         </h1>
         <ul>
-          <li ng-repeat="word in type.words track by $index">
-              {{word}}
-          </li>
+          <li ng-repeat="word in type.words track by $index" ng-bind-html="word"></li>
         </ul>
     </md-card>
 

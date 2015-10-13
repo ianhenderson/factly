@@ -24,6 +24,7 @@ var source = {
         "node_modules/angular-animate/angular-animate.js",
         "node_modules/angular-aria/angular-aria.js",
         "node_modules/angular-material/angular-material.js",
+        "node_modules/angular-sanitize/angular-sanitize.js",
       ],
       prod: [
         "node_modules/angular/angular.min.js",
@@ -31,6 +32,7 @@ var source = {
         "node_modules/angular-animate/angular-animate.min.js",
         "node_modules/angular-aria/angular-aria.min.js",
         "node_modules/angular-material/angular-material.min.js",
+        "node_modules/angular-sanitize/angular-sanitize.min.js",
       ]
     }
   },
