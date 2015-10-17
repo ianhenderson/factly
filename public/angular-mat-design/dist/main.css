@@ -1,3 +1,6 @@
+.introduction p {
+  margin: .5em;
+}
 .pic {
   width: 70px;
   margin: 10px;

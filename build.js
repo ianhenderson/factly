@@ -7,7 +7,7 @@ var env = process.env.NODE_ENV ? 'prod' : 'dev';
 
 
 function buildPath(filename){
-  var path = ['public', 'dist'];
+  var path = ['public', 'angular-mat-design', 'dist'];
   if (filename) { path.push(filename); }
   return path.join('/');
 }
@@ -15,7 +15,7 @@ function buildPath(filename){
 var source = {
   js: {
     src: [
-      "public/js/app.js",
+      "public/angular-mat-design/js/app.js",
     ],
     vendor: {
       dev: [
@@ -38,7 +38,7 @@ var source = {
   },
   css: {
     src: [
-      "public/styles/style.css",
+      "public/angular-mat-design/styles/style.css",
       ],
     vendor: {
       dev: [

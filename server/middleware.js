@@ -8,7 +8,10 @@ module.exports = function(app){
   app.use(bodyParser.urlencoded({extended: true}));
   app.use(bodyParser.json({limit: '2mb'}));
   app.use(cookieParser());
-  app.use(express.static(__dirname + '/../public', {
+  app.use(express.static(__dirname + '/../public/angular-mat-design', {
+    maxAge: 2592000000
+  }));
+  app.use(express.static(__dirname + '/../public/react', {
     maxAge: 2592000000
   }));
 };

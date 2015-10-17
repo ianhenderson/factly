@@ -1,4 +1,7 @@
 {
-  "ignore": ["public/dist", "node_modules"],
+  "ignore": [
+    "public/**/dist",
+    "node_modules"
+  ],
   "exec": "npm run build && npm test; node server.js;"
 }
