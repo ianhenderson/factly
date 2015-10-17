@@ -52,15 +52,12 @@ var source = {
 };
 // make path directory
 console.time('build.js');
-// console.log('* Making path...');
 mkdir('-p', buildPath());
 
 // concat source js > public/dist/main.js
-// console.log('* Concat src > main.js...');
 var src = cat(source.js.src);
 
   // ngAnnotate
-  // console.log('* ngAnnotate-ing...');
   src = ngAnnotate(src, {add: true, single_quotes: true}).src;
 
   // minify
@@ -72,16 +69,12 @@ var src = cat(source.js.src);
 src.to(buildPath('main.js'));
 
 // concat source js > public/dist/vendor.js
-// console.log('* Concat src > vendor.js...');
 cat(source.js.vendor[env]).to(buildPath('vendor.js'));
 
 // concat source css > public/dist/main.css
-// console.log('* Concat src > main.css...');
 cat(source.css.src).to(buildPath('main.css'));
 
 // concat source css > public/dist/vendor.css
-// console.log('* Concat src > vendor.css...');
 cat(source.css.vendor[env]).to(buildPath('vendor.css'));
 
-// console.log('* Finished building!');
 console.timeEnd('build.js');
