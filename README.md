@@ -1,6 +1,10 @@
-Factly
+KSTool (Kanji Study Tool)
 ======
 
-A flashcard application for studying facts. Keep all your notes together in one place and review them when you want. Uses Angular/UI-router on the front end, and Node/Express & SQLite on the server.
+A flashcard application for studying Japanese characters. 
 
-Check it out at http://factly.azurewebsites.net
+Words & phrases entered into the system are presented for review one character at a time, along with contextually similar words in order to help develop meaningful associations with each character. 
+
+Uses Angular/UI-router on the front end, and Node/Express & SQLite on the server.
+
+Check it out at http://kanjistudytool.com
