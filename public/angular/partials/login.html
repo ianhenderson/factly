@@ -1,0 +1,47 @@
+<!-- <md-content>
+    <div id="login">
+        <div class="loginTitle">KSTool</div>
+        <md-button md-no-ink class="md-raised" ng-click="login()">Click to log in.</md-button>
+    </div>
+</md-content>
+ -->
+<md-content class="md-padding" layout="column" layout-align="center" layout-margin layout-padding>
+
+    <md-card flex layout layout-align="center center">
+        <h1 class="md-accent">Welcome to KSTool!</h1>
+    </md-card>
+
+    <md-card flex layout class="introduction">
+        <p>
+            KSTool is a tool for studying Japanese characters (漢字).
+        </p>
+        <p>
+            While there are several methods for studying 漢字 such as mnemonics, wrote copying, and spaced repetition flashcards, most tend to put too much emphasis on drilling without context that is relevant to the learner or force the learner to spend lots of time creating context (copying sentences, highlighting words) and other gruntwork.
+        </p>
+        <p>
+            Additionally, with a living language one ought to spend the bulk of their time consuming from and using the language with genuine sources.
+            While a certain degree of review is beneficial, endless hours of drilling take away from time that could be spent interacting with real, interesting content.
+        </p>
+        <p>
+            KSTool allows you to input words or phrases that you found worth studying - perhaps from a magazine, movie, blog post, etc. - and review the characters individually while also displaying other phrases you've entered in which the character has appeared. Characters are shown only once per occurance, per addition, which is sufficient for review but doesn't bog one down.
+        </p>
+    </md-card>
+
+    <md-card flex>
+        <md-tabs>
+            <md-tab ng-repeat="tab in tabs" label="{{tab.title}}" md-on-select="select(tab.title)" ></md-tab>
+        </md-tabs>
+        <form class="submit">
+            <md-input-container>
+                <label>User name:</label>
+                <input ng-model="username" type="text" size="100">
+            </md-input-container>
+            <md-input-container>
+                <label>Password:</label>
+                <input ng-model="password" type="password" size="100">
+            </md-input-container>
+
+            <md-button md-no-ink class="md-raised md-primary" ng-click="submit()">Sign in</md-button>
+        </form>
+    </md-card>
+</md-content>
