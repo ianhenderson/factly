@@ -29,7 +29,7 @@ node_modules
 public/lib/*
 
 # Generated JS/CSS
-public/dist
+public/**/dist
 
 # SQLite DB file
 *.db
