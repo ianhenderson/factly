@@ -5,7 +5,7 @@ var config = {
     file: 'mock.db',
     trace: false,
     profile: false,
-    port: process.env.PORT || 3000
+    port: process.env.PORT || 3001
   },
   prod: {
     file: 'test.db',

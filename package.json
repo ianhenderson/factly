@@ -5,6 +5,7 @@
   "main": "server.js",
   "scripts": {
     "test": "jasmine",
+    "e2e": "node_modules/.bin/protractor spec/protractor.conf.js || true",
     "build": "node ./build.js",
     "postinstall": "npm run build"
   },
@@ -36,6 +37,8 @@
     "uglify-js": "2.4.24"
   },
   "devDependencies": {
+    "chromedriver": "^2.19.0",
+    "protractor": "^2.5.1",
     "supertest": "^1.1.0"
   }
 }
