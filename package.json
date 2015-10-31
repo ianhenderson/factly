@@ -41,6 +41,7 @@
   },
   "devDependencies": {
     "chromedriver": "^2.19.0",
+    "nodemon": "^1.8.0",
     "protractor": "^2.5.1",
     "supertest": "^1.1.0"
   }
