@@ -6,7 +6,9 @@ var uglifyJS = require("uglify-js");
 var env = process.env.NODE_ENV ? 'prod' : 'dev';
 var fs = require('fs');
 var browserify = require('browserify');
-var b = browserify();
+var b = browserify({
+  debug: (env === 'dev')
+});
 
 
 function buildPath(subdir, filename){
@@ -132,7 +134,7 @@ for (var key in source) {
 
 }
 
-// browserify angular bundle
+// browserify stuff:
 var srcBundle = fs.createWriteStream(
   buildPath('angular', 'bundle.js')
 );
@@ -140,13 +142,15 @@ var vendorBundle = fs.createWriteStream(
   buildPath('angular', 'vendorbundle.js')
 );
 
-b.add('./public/angular/src/app.js');
-b.external(source.angular.js.vendor.dev);
-b.bundle().pipe(srcBundle);
-b.reset();
+// src bundle
+b.add('./public/angular/src/app.js')
+ .bundle().pipe(srcBundle);
 
-b.require(source.angular.js.vendor.browserify);
-b.bundle().pipe(vendorBundle);
+// b.reset();
+
+// vendor bundle
+// b.require(source.angular.js.vendor.browserify);
+// b.bundle().pipe(vendorBundle);
 
 
 console.timeEnd('build.js');
