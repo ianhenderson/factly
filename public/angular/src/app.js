@@ -1,4 +1,6 @@
-angular.module('KSTool', ['ui.router', 'ngMaterial', 'ngSanitize'])
+var angular = require('angular');
+// angular.module('KSTool', ['ui.router', 'ngMaterial', 'ngSanitize'])
+angular.module('KSTool', [require('ui.router').name, require('ngMaterial').name, require('ngSanitize').name])
 
 ///////////////////// Setup & Config /////////////////////
 

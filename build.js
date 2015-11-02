@@ -4,6 +4,9 @@ require('shelljs/global');
 var ngAnnotate = require("ng-annotate");
 var uglifyJS = require("uglify-js");
 var env = process.env.NODE_ENV ? 'prod' : 'dev';
+var fs = require('fs');
+var browserify = require('browserify');
+var b = browserify();
 
 
 function buildPath(subdir, filename){
@@ -55,7 +58,7 @@ var source = {
   'angular': {
     js: {
       src: [
-        "public/angular/js/app.js",
+        "public/angular/src/app.js",
       ],
       vendor: {
         dev: [
@@ -65,6 +68,14 @@ var source = {
           "node_modules/angular-aria/angular-aria.js",
           "node_modules/angular-material/angular-material.js",
           "node_modules/angular-sanitize/angular-sanitize.js",
+        ],
+        browserify: [
+          "angular",
+          "angular-ui-router",
+          "angular-animate",
+          "angular-aria",
+          "angular-material",
+          "angular-sanitize",
         ],
         prod: [
           "node_modules/angular/angular.min.js",
@@ -78,7 +89,7 @@ var source = {
     },
     css: {
       src: [
-        "public/angular/styles/style.css",
+        "public/angular/src/styles/style.css",
         ],
       vendor: {
         dev: [
@@ -120,4 +131,22 @@ for (var key in source) {
   cat(source[key].css.vendor[env]).to(buildPath(key, 'vendor.css'));
 
 }
+
+// browserify angular bundle
+var srcBundle = fs.createWriteStream(
+  buildPath('angular', 'bundle.js')
+);
+var vendorBundle = fs.createWriteStream(
+  buildPath('angular', 'vendorbundle.js')
+);
+
+b.add('./public/angular/src/app.js');
+b.external(source.angular.js.vendor.dev);
+b.bundle().pipe(srcBundle);
+b.reset();
+
+b.require(source.angular.js.vendor.browserify);
+b.bundle().pipe(vendorBundle);
+
+
 console.timeEnd('build.js');
