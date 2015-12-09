@@ -1,4 +1,3 @@
-var Promise = require('bluebird');
 var router = require('express').Router();
 var checkSession = require('./checkSession');
 var ctrl = require('./controller');

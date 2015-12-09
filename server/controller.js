@@ -1,5 +1,4 @@
 var db = require('./db.js');
-var Promise = require('bluebird');
 
 function login(req, res){
 
