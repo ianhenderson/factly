@@ -1,6 +1,6 @@
 var angular = require('angular');
 
-module.exports = angular.module('KSTool', [])
+module.exports = angular.module('KSTool.controllers', [])
 
 /////////////////// Controllers /////////////////////
 .controller('LoginCtrl', function($scope, AuthService, Toast){

@@ -6,10 +6,10 @@ var uglifyJS = require("uglify-js");
 var env = process.env.NODE_ENV ? 'prod' : 'dev';
 var fs = require('fs');
 var browserify = require('browserify');
+var p = require('partialify');
 var b = browserify({
   debug: (env === 'dev')
 });
-
 
 function buildPath(subdir, filename){
   subdir = subdir || 'angular-mat-design';
@@ -144,6 +144,7 @@ var vendorBundle = fs.createWriteStream(
 
 // src bundle
 b.add('./public/angular/src/app.js')
+ .transform(p)
  .bundle().pipe(srcBundle);
 
 // b.reset();

@@ -1,6 +1,6 @@
 var angular = require('angular');
 
-module.exports = angular.module('KSTool', [])
+module.exports = angular.module('KSTool.config', [])
 
 ///////////////////// Setup & Config /////////////////////
 .config(function($stateProvider, $urlRouterProvider, $httpProvider){
@@ -20,50 +20,35 @@ module.exports = angular.module('KSTool', [])
 
                 return $q.reject(rejection);
             }
-       }; 
+       };
     });
     $stateProvider
         .state('login', {
             url: '/login',
-            templateUrl: 'partials/login.html',
+            template: require('../partials/login.html'),
             controller: 'LoginCtrl'
         })
         .state('nav', { // Just a container with the nav bar & headers
             abstract: true,
-            templateUrl: 'partials/nav.html',
+            template: require('../partials/nav.html'),
             controller: 'NavCtrl'
         })
         .state('nav.home', { // The actual default homepage
             url: '/home',
-            templateUrl: 'partials/home.html',
+            template: require('../partials/home.html'),
             controller: 'HomeCtrl'
         })
         .state('nav.addwords', {
             url: '/addwords',
-            templateUrl: 'partials/add-words.html',
+            template: require('../partials/add-words.html'),
             controller: 'AddWordsCtrl'
-        })
-        .state('nav.idea', {
-            url: '/ideas/:id',
-            templateUrl: 'partials/idea.html',
-            controller: 'IdeaCtrl'
-        })
-        .state('nav.profile', {
-            url: '/profile',
-            templateUrl: 'partials/profile.html',
-            controller: 'ProfileCtrl'
-        })
-        .state('nav.profile.user', {
-            url: '/:id',
-            templateUrl: 'partials/profile.html',
-            controller: 'ProfileCtrl'
         });
 
     $urlRouterProvider.otherwise('/home');
 })
 .run(function($rootScope, $location, LocalStorage, AuthService){
     // Listener that checks on each state change whether or not we have an auth token. If we don't, redirect to /login.
-    $rootScope.$on('$stateChangeStart', function(event, toState, toParams, fromState, fromParams){ 
+    $rootScope.$on('$stateChangeStart', function(event, toState, toParams, fromState, fromParams){
         var isLoggedIn = AuthService.validate();
 
         if (!isLoggedIn) {
@@ -71,8 +56,8 @@ module.exports = angular.module('KSTool', [])
             return;
         }
 
-        // If trying to go to /login (while logged in already), 
-        // or coming from /login (just finished AuthService.oAuthAuthorize), 
+        // If trying to go to /login (while logged in already),
+        // or coming from /login (just finished AuthService.oAuthAuthorize),
         // or navigating to the base URL (awesome.com/)
         // go /home
         if (toState.name === 'login' || fromState.name === 'login' || !toState.url) {

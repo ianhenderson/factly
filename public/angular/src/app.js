@@ -1,12 +1,12 @@
 var angular = require('angular');
 
-require('./services');
-require('./config');
-require('./directives');
-
 angular.module('KSTool', [
     require('angular-ui-router'),
-    // require('angular-material'),
-    require('angular-sanitize')
+    require('angular-animate'),
+    require('angular-aria'),
+    require('angular-material'),
+    require('angular-sanitize'),
+    require('./services').name,
+    require('./config').name,
+    require('./directives').name
 ]);
-
