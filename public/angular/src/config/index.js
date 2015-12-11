@@ -25,23 +25,19 @@ module.exports = angular.module('KSTool.config', [])
     $stateProvider
         .state('login', {
             url: '/login',
-            template: require('../partials/login.html'),
-            controller: 'LoginCtrl'
+            template: '<k-login></k-login>'
         })
         .state('nav', { // Just a container with the nav bar & headers
             abstract: true,
-            template: require('../partials/nav.html'),
-            controller: 'NavCtrl'
+            template: '<k-nav></k-nav>'
         })
         .state('nav.home', { // The actual default homepage
             url: '/home',
-            template: require('../partials/home.html'),
-            controller: 'HomeCtrl'
+            template: '<k-home></k-home>'
         })
         .state('nav.addwords', {
             url: '/addwords',
-            template: require('../partials/add-words.html'),
-            controller: 'AddWordsCtrl'
+            template: '<k-add-words></k-add-words>'
         });
 
     $urlRouterProvider.otherwise('/home');

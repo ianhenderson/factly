@@ -8,6 +8,5 @@ angular.module('KSTool', [
     require('angular-sanitize'),
     require('./services').name,
     require('./config').name,
-    require('./controllers').name,
     require('./directives').name
 ]);

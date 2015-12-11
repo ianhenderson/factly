@@ -1,0 +1,16 @@
+<md-content>
+
+    <md-card layout-margin >
+        <md-button class="md-raised" ng-click="ctrl.getNextChar()">Get next character</md-button>
+    </md-card>
+
+    <md-card flex layout="row" layout-margin layout-padding >
+        <h1>
+            {{ctrl.type.kanji || ctrl.type}}
+        </h1>
+        <ul>
+          <li ng-repeat="word in ctrl.type.words track by $index" ng-bind-html="word"></li>
+        </ul>
+    </md-card>
+
+</md-content>
