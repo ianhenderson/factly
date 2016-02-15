@@ -3,6 +3,9 @@
   "version": "0.0.0",
   "description": "factly ======",
   "main": "server.js",
+  "engines": {
+    "node": "4.3.0"
+  },
   "scripts": {
     "test:unit": "jasmine",
     "test:e2e": "node_modules/.bin/protractor spec/protractor.conf.js || true",
