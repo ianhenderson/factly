@@ -13,7 +13,7 @@
     "build:dev": "npm run build:angular & npm run build:es6-dev",
     "build": "npm run build:angular & npm run build:es6",
     "dev": "nodemon",
-    "postinstall": "npm run build && npm start"
+    "postinstall": "npm run build"
   },
   "repository": {
     "type": "git",
