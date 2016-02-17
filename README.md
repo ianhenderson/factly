@@ -7,4 +7,4 @@ Words & phrases entered into the system are presented for review one character a
 
 Uses Angular/UI-router on the front end, and Node/Express & SQLite on the server.
 
-Check it out at http://kanjistudytool.com
+Check it out at http://kanjistudytool.ianh.co/
