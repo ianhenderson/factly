@@ -11,7 +11,7 @@
     "test:e2e": "node_modules/.bin/protractor spec/protractor.conf.js || true",
     "test": "npm run test:unit & npm run test:e2e",
     "build:angular": "node ./build.js",
-    "build:es6": "browserify -t babelify -e public/es6/src/entry.js -o public/es6/dist/main.js",
+    "build:es6": "mkdir -p public/es6/dist/ && browserify -t babelify -e public/es6/src/entry.js -o public/es6/dist/main.js",
     "build:es6-dev": "npm run build:es6 -- -d",
     "build:dev": "npm run build:angular & npm run build:es6-dev",
     "build": "npm run build:angular & npm run build:es6",
