@@ -170,12 +170,13 @@ module.exports = fn = {
     });
   },
 
-  // Add to queue
+  // Add to queue (shuffle before adding)
   enqueue: function(userId, kanjiArray){
     return db.getAsync('SELECT queue FROM study_queue WHERE study_queue.user_id = ?', userId)
       .then(function(row){
+        var shuffled = fn.shuffleArray(kanjiArray);
         var q = row && JSON.parse(row.queue);
-        q = q ? q.concat(kanjiArray) : kanjiArray ;
+        q = q ? q.concat(shuffled) : shuffled ;
         var q_string = JSON.stringify(q);
         if (row){
           db.run('UPDATE study_queue SET queue = ? WHERE user_id = ?', q_string, userId);
@@ -207,6 +208,19 @@ module.exports = fn = {
   // Helper function to strip out non-kanji characters
   filterKanji: function(str){
      return str.replace(/[^\u4e00-\u9faf]/g, '');
+  },
+
+  // Helper function to shuffle array before insertion into queued kanji
+  shuffleArray: function shuffleArray(arrOrig) {
+    var arr = arrOrig.slice();
+    var newArr = [];
+    while (arr.length) {
+      var randomIndex = Math.floor(Math.random() * arr.length);
+      newArr.push( arr[randomIndex] );
+      arr.splice(randomIndex, 1);
+    }
+
+    return newArr;
   },
 
   // Expose db connection for testing
