@@ -9,8 +9,7 @@
   font-size: larger;
 }
 .hl {
-  color: fuchsia;
-  font-weight: bold;
+  background: #ffe4c4
 }
 #index, #content {
   font-family: 'Noto Sans Japanese', sans-serif;

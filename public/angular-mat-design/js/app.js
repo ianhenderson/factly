@@ -263,7 +263,7 @@ angular.module('KSTool', ['ui.router', 'ngMaterial', 'ngSanitize'])
 
     function createClozeSentence(kanji, str) {
         return function(str){
-            return str.replace(kanji, '＿');
+            return str.replace(kanji, wrapKanji('＿'));
         };
     }
 
