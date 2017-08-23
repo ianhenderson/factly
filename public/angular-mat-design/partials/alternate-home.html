@@ -1,0 +1,27 @@
+<md-content>
+
+    <md-card layout-margin>
+        <span ng-switch="mode">
+            <span ng-switch-default>
+                <md-button class="md-raised" ng-click="getQuestion()">Get character</md-button>
+            </span>
+            <span ng-switch-when="1">
+                <md-button class="md-raised" ng-click="showAnswer()">Show Answer</md-button>
+            </span>
+        </span>
+    </md-card>
+
+    <md-card flex layout="row" layout-margin layout-padding >
+        <span ng-switch="mode">
+            <span ng-switch-default>
+                <h1> {{type.kanji || type}} </h1>
+                <li ng-repeat="word in type.answers track by $index" ng-bind-html="word"></li>
+            </span>
+            <span ng-switch-when="1">
+                <h1> ＿ </h1>
+                <li ng-repeat="word in type.clozes track by $index" ng-bind-html="word"></li>
+            </span>
+        </span>
+    </md-card>
+
+</md-content>

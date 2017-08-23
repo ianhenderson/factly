@@ -3,5 +3,5 @@
     "public/**/dist",
     "node_modules"
   ],
-  "exec": "npm run build:dev && node server.js;"
+  "exec": "npm run build:dev && node --inspect server.js;"
 }

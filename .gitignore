@@ -33,3 +33,4 @@ public/**/dist
 
 # SQLite DB file
 *.db
+.DS_Store

@@ -19,7 +19,7 @@ angular.module('KSTool', ['ui.router', 'ngMaterial', 'ngSanitize'])
 
                 return $q.reject(rejection);
             }
-       }; 
+       };
     });
     $stateProvider
         .state('login', {
@@ -36,6 +36,11 @@ angular.module('KSTool', ['ui.router', 'ngMaterial', 'ngSanitize'])
             url: '/home',
             templateUrl: 'partials/home.html',
             controller: 'HomeCtrl'
+        })
+        .state('nav.althome', { // The actual default homepage
+            url: '/althome',
+            templateUrl: 'partials/alternate-home.html',
+            controller: 'AltHomeCtrl'
         })
         .state('nav.addwords', {
             url: '/addwords',
@@ -62,7 +67,7 @@ angular.module('KSTool', ['ui.router', 'ngMaterial', 'ngSanitize'])
 })
 .run(function($rootScope, $location, LocalStorage, AuthService){
     // Listener that checks on each state change whether or not we have an auth token. If we don't, redirect to /login.
-    $rootScope.$on('$stateChangeStart', function(event, toState, toParams, fromState, fromParams){ 
+    $rootScope.$on('$stateChangeStart', function(event, toState, toParams, fromState, fromParams){
         var isLoggedIn = AuthService.validate();
 
         if (!isLoggedIn) {
@@ -70,8 +75,8 @@ angular.module('KSTool', ['ui.router', 'ngMaterial', 'ngSanitize'])
             return;
         }
 
-        // If trying to go to /login (while logged in already), 
-        // or coming from /login (just finished AuthService.oAuthAuthorize), 
+        // If trying to go to /login (while logged in already),
+        // or coming from /login (just finished AuthService.oAuthAuthorize),
         // or navigating to the base URL (awesome.com/)
         // go /home
         if (toState.name === 'login' || fromState.name === 'login' || !toState.url) {
@@ -232,7 +237,9 @@ angular.module('KSTool', ['ui.router', 'ngMaterial', 'ngSanitize'])
         return $http(config)
             .then(function(response){
                 var highlight = highlightKanji(response.data.kanji);
-                response.data.words = response.data.words.map(highlight);
+                var cloze = createClozeSentence(response.data.kanji);
+                response.data.answers = response.data.words.map(highlight);
+                response.data.clozes = response.data.words.map(cloze);
                 return response.data;
             })
             .catch(function(response){
@@ -251,6 +258,12 @@ angular.module('KSTool', ['ui.router', 'ngMaterial', 'ngSanitize'])
     function highlightKanji(kanji, str){
         return function(str){
             return str.replace(kanji, wrapKanji(kanji));
+        };
+    }
+
+    function createClozeSentence(kanji, str) {
+        return function(str){
+            return str.replace(kanji, '＿');
         };
     }
 
@@ -324,6 +337,13 @@ angular.module('KSTool', ['ui.router', 'ngMaterial', 'ngSanitize'])
             }
         },
         {
+            label: 'Review Kanji (Cloze)',
+            action: function(){
+                $state.go('nav.althome');
+                $mdSidenav('left').close();
+            }
+        },
+        {
             label: 'Add Words',
             action: function(){
                 $state.go('nav.addwords');
@@ -352,6 +372,29 @@ angular.module('KSTool', ['ui.router', 'ngMaterial', 'ngSanitize'])
         .then(function(data){
             $scope.type = data;
         });
+    };
+
+})
+.controller('AltHomeCtrl', function($scope, K){
+
+    /**
+     * Review mode:
+     * 0 -- Nothing shown
+     * 1 -- Show question
+     * 2 -- Show answer
+     */
+    $scope.mode = 0;
+
+    $scope.getQuestion = function(){
+        K.getNextChar()
+        .then(function(data){
+            $scope.type = data;
+            $scope.mode = 1;
+        });
+    };
+
+    $scope.showAnswer = function(){
+        $scope.mode = 2;
     };
 
 })
