@@ -14,11 +14,11 @@
     <md-card flex layout="row" layout-margin layout-padding >
         <span ng-switch="mode">
             <span ng-switch-default>
-                <h1> {{type.kanji || type}} </h1>
+                <div class="kanji"> {{type.kanji || type}} </div>
                 <li ng-repeat="word in type.answers track by $index" ng-bind-html="word"></li>
             </span>
             <span ng-switch-when="1">
-                <h1> ＿ </h1>
+                <div class="kanji"> ＿ </div>
                 <li ng-repeat="word in type.clozes track by $index" ng-bind-html="word"></li>
             </span>
         </span>

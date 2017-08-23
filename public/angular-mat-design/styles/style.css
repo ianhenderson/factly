@@ -13,5 +13,10 @@
   font-weight: bold;
 }
 #index, #content {
+  font-family: 'Noto Sans Japanese', sans-serif;
   height: 100%;
+}
+
+.kanji {
+  font-size: 4em;
 }
