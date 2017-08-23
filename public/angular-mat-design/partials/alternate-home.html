@@ -1,14 +1,7 @@
 <md-content>
 
     <md-card layout-margin>
-        <span ng-switch="mode">
-            <span ng-switch-default>
-                <md-button class="md-raised" ng-click="getQuestion()">Get character</md-button>
-            </span>
-            <span ng-switch-when="1">
-                <md-button class="md-raised" ng-click="showAnswer()">Show Answer</md-button>
-            </span>
-        </span>
+        <md-button class="md-raised" ng-click="btnAction()">{{btnText}}</md-button>
     </md-card>
 
     <md-card flex layout="row" layout-margin layout-padding >

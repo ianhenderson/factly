@@ -384,6 +384,22 @@ angular.module('KSTool', ['ui.router', 'ngMaterial', 'ngSanitize'])
      * 2 -- Show answer
      */
     $scope.mode = 0;
+    $scope.btnText = "Get character"
+
+    $scope.btnAction = function(){
+        switch ($scope.mode) {
+            case 1: {
+                $scope.showAnswer();
+                $scope.btnText = "Get character"
+                break;
+            }
+            default: {
+                $scope.getQuestion();
+                $scope.btnText = "Show Answer"
+                break;
+            }
+        }
+    };
 
     $scope.getQuestion = function(){
         K.getNextChar()
