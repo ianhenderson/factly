@@ -36,7 +36,7 @@ function signup(req, res){
     res.status(400).send("Error: POST must include a username and password.");
   } else {
     dbpg.userCheck(username, password)
-      then(results => {
+      .then(results => {
         if (results.length) {
           res.status(409).send("User already in database.");
         } else {
