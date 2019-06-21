@@ -72,6 +72,19 @@ function getKanji(req, res){
   })
 }
 
+function markComplete(req, res){
+  var queueId = req.body.queueId;
+  if (!queueId){
+    res.status(400).send("Error: POST must include a queueId.");
+  } else {
+    dbpg.queueMarkdone(queueId)
+      .then(results => {
+        res.status(200).send(results);
+      })
+
+  }
+}
+
 function addFact(req, res){
   var c = req.cookies;
   var id = c.session.id;
@@ -81,8 +94,8 @@ function addFact(req, res){
     res.status(400).send("Error: POST must include a fact.");
   } else {
     if (!Array.isArray(fact)) { fact = [fact] }
-
-    dbpg.wordInsert(fact, id)
+    let promises = fact.map(f => dbpg.wordInsert(f, id))
+    Promise.all(promises)
       .then(results => {
         res.status(201).send(`Success! Fact added to ${name}'s collection: ${fact.join()}`);
       })
@@ -94,5 +107,6 @@ module.exports = {
   logout: logout,
   signup: signup,
   getKanji: getKanji,
-  addFact: addFact
+  addFact: addFact,
+  markComplete
 }

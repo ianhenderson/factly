@@ -7,7 +7,8 @@ router.use(checkSession);
 
 // Get kanji
 router.route('/kanji')
-  .get(ctrl.getKanji);
+  .get(ctrl.getKanji)
+  .post(ctrl.markComplete);
 
 // Get/add words
 router.route('/facts')

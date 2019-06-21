@@ -228,6 +228,22 @@ angular.module('KSTool', ['ui.router', 'ngMaterial', 'ngSanitize'])
                 return response.data;
             });
     }
+  
+    function markCharComplete(queueId) {
+        var config = {
+            method: 'POST',
+            url: '/api/kanji',
+            data: { queueId }
+        };
+        return $http(config)
+        .then(function(response) {
+            return response.data;
+        })
+        .catch(function(response) {
+            return response.data;
+        });
+    }
+
 
     function getNextChar(){
         var config = {
@@ -270,7 +286,8 @@ angular.module('KSTool', ['ui.router', 'ngMaterial', 'ngSanitize'])
     // Public methods to be used elsewhere in the app.
     return K = {
         addWord: addWord,
-        getNextChar: getNextChar
+        getNextChar: getNextChar,
+        markCharComplete
     };
 })
 .factory('Toast', function($mdToast){
@@ -366,11 +383,14 @@ angular.module('KSTool', ['ui.router', 'ngMaterial', 'ngSanitize'])
     ];
 })
 .controller('HomeCtrl', function($scope, K){
+    var queueId;
 
     $scope.getNextChar = function(){
-        K.getNextChar()
+        K.markCharComplete(queueId)
+        .then(K.getNextChar)
         .then(function(data){
             $scope.type = data;
+            queueId = data.queue_id;
         });
     };
 
