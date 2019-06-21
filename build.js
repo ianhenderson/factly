@@ -116,10 +116,10 @@ for (var key in source) {
     src = ngAnnotate(src, {add: true, single_quotes: true}).src;
 
     // minify
-    if (env === 'prod') {
-      // console.log('* minifying...');
-      src = uglifyJS.minify(src, {fromString: true}).code;
-    }
+    // if (env === 'prod') {
+    //   // console.log('* minifying...');
+    //   src = uglifyJS.minify(src, {fromString: true}).code;
+    // }
 
   src.to(buildPath(key, 'main.js'));
 
