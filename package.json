@@ -4,7 +4,7 @@
   "description": "factly ======",
   "main": "server.js",
   "engines": {
-    "node": "~0.10.31"
+    "node": ">= 8.0"
   },
   "scripts": {
     "test:unit": "jasmine",
