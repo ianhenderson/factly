@@ -11,7 +11,6 @@ router.route('/kanji')
 
 // Get/add words
 router.route('/facts')
-  .get(ctrl.getFacts)
   .post(ctrl.addFact);
 
 // Add new user & password to database
