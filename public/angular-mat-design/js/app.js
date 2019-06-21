@@ -396,6 +396,7 @@ angular.module('KSTool', ['ui.router', 'ngMaterial', 'ngSanitize'])
 
 })
 .controller('AltHomeCtrl', function($scope, K){
+    var queueId;
 
     /**
      * Review mode:
@@ -422,10 +423,12 @@ angular.module('KSTool', ['ui.router', 'ngMaterial', 'ngSanitize'])
     };
 
     $scope.getQuestion = function(){
-        K.getNextChar()
+        K.markCharComplete(queueId)
+        .then(K.getNextChar)
         .then(function(data){
             $scope.type = data;
             $scope.mode = 1;
+            queueId = data.queue_id;
         });
     };
 
