@@ -70,6 +70,7 @@ function getKanji(req, res){
     }
 
   })
+}
 
 function addFact(req, res){
   var c = req.cookies;
@@ -93,5 +94,5 @@ module.exports = {
   logout: logout,
   signup: signup,
   getKanji: getKanji,
-  addFact: addFact,
-};
+  addFact: addFact
+}
